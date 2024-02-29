@@ -26,10 +26,11 @@ context_length = 30
 
 class ReviewDataset(Dataset):
 
-    def __init__(self, states, actions, rewards, terminal_indices, block_size):
+    def __init__(self, states, actions, rewards, timesteps, terminal_indices, block_size):
         self.states = states
         self.actions = actions
         self.rewards = rewards
+        self.timesteps = timesteps
         self.terminal_indices = terminal_indices
         self.block_size = block_size
         self.vocab_size = max(actions) + 1
@@ -49,23 +50,28 @@ class ReviewDataset(Dataset):
 
         # Squeeze these tensors to give dimension for batch size expected by most APIs (b,t)
         # Notice that original paper didn't unsqueeze these until later
-        states = torch.tensor(np.array(self.states[idx:done_idx]), dtype=torch.float32)
-        actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long)  # was (block_size, 1) back when there was an unsqueeze
-        rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32)
-        print(f"states.size: {states.shape}")
+        states = torch.tensor(np.array(self.states[idx:done_idx]), dtype=torch.float32).unsqueeze(1)
+        actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)  # was (block_size, 1) back when there was an unsqueeze
+        rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
+        timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
+        # print(f"states.size: {states.shape}")
 
-        return states, actions, rewards
+        return states, actions, rewards, timesteps
 
 # Read in data
 data = pd.read_csv('dummy_50.tsv', delimiter="\t")
 states = data['user_id'].tolist()
 actions = data['item_id'].tolist()
+actions = [a - 1 for a in actions]
 rewards = data['rating'].tolist()
+timesteps = data['timestep'].tolist()
 terminal_indices = get_terminal_indices(states)
 
 # Train
-train_dataset = ReviewDataset(states, actions, rewards, terminal_indices, context_length * 3)
-mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8, n_embd=128)
+train_dataset = ReviewDataset(states, actions, rewards, timesteps, terminal_indices, context_length * 3)
+print(f"max_timesteps is: {max(timesteps)}")
+mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
+                  n_embd=128, max_timestep=max(timesteps)) # max_timestep is highest timestep ever achieved in training data
 model = GPT(mconf)
 
 # initialize a trainer instance and kick off training

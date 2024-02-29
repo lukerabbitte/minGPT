@@ -75,7 +75,7 @@ class Trainer:
             losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
 
-            # Note that x,y,r are of size
+            # Note that x,y,r are of size torch.Size([30]), or context length
             for it, (x, y, r) in pbar:
 
                 # place data on the correct device
@@ -83,13 +83,13 @@ class Trainer:
                 y = y.to(self.device)
                 r = r.to(self.device)
 
-                print(f"What does x of size: {x.size()} look like?:\n{x}")
-                print(f"What does y of size: {y.size()} look like?:\n{y}")
-                print(f"What does r of size: {r.size()} look like?:\n{y}")
+                print(f"What does x of size: {x.size()} look like?:\n") # maybe DataLoader added that batch dim, if not, we must.
+                print(f"What does y of size: {y.size()} look like?:\n")
+                print(f"What does r of size: {r.size()} look like?:\n")
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
-                    logits, loss = model(x, y, r)
+                    logits, loss = model(x, y, y, r)
                     loss = loss.mean() # collapse all losses if they are scattered on multiple gpus
                     losses.append(loss.item())
 
