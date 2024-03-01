@@ -108,8 +108,10 @@ class GPT(nn.Module):
 
         # input embedding stem
         self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
-        self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd)) # might need block_size + 1
+        self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size + 1, config.n_embd))
+        # print(self.pos_emb.shape) # ([1, 91, 128])
         self.global_pos_emb = nn.Parameter(torch.zeros(1, config.max_timestep + 1, config.n_embd))
+        # print(self.global_pos_emb.shape) # ([1, 104, 128])
         self.drop = nn.Dropout(config.embd_pdrop)
 
         # transformer
@@ -121,15 +123,15 @@ class GPT(nn.Module):
         self.block_size = config.block_size
         self.apply(self._init_weights)
 
-        # state, action, reward encoders
-        self.state_encoder = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
-        # print(f"self.state_encoder:\n{self.state_encoder}\n")
-        self.ret_emb = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
-        # print(f"self.ret_emb:\n{self.ret_emb}\n")
-        self.action_embeddings = nn.Sequential(nn.Embedding(config.vocab_size, config.n_embd), nn.Tanh())
-        # print(f"self.action_embeddings:\n{self.action_embeddings}\n")
+        # state, action, reward embeddings
+        self.state_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
+        print(f"self.state_embedding:\n{self.state_embedding}\n")
+        self.reward_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
+        # print(f"self.reward_embedding:\n{self.reward_embedding}\n")
+        self.action_embedding = nn.Sequential(nn.Embedding(config.vocab_size, config.n_embd), nn.Tanh())
+        # print(f"self.action_embedding:\n{self.action_embedding}\n")
 
-        nn.init.normal_(self.action_embeddings[0].weight, mean=0.0, std=0.02)
+        nn.init.normal_(self.action_embedding[0].weight, mean=0.0, std=0.02)
         logger.info("number of parameters: %e", sum(p.numel() for p in self.parameters()))
 
     def get_block_size(self):
@@ -175,6 +177,7 @@ class GPT(nn.Module):
 
         # special case the position embedding parameter in the root GPT module as not decayed
         no_decay.add('pos_emb')
+        no_decay.add('global_pos_emb')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}
@@ -194,67 +197,84 @@ class GPT(nn.Module):
 
     """
     self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
-    self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
-    self.state_encoder = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
-    self.ret_emb = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
-    self.action_embeddings = nn.Sequential(nn.Embedding(config.vocab_size, config.n_embd), nn.Tanh())
+    self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size+1, config.n_embd)) # ([1, 91, 128]) 
+    self.global_pos_emb = nn.Parameter(torch.zeros(1, config.max_timestep + 1, config.n_embd)) # ([1, 104, 128])
+    self.state_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
+    self.reward_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
+    self.action_embedding = nn.Sequential(nn.Embedding(config.vocab_size, config.n_embd), nn.Tanh())
     """
 
-    def forward(self, states, actions, targets=None, rewards=None):
+    def forward(self, states, actions, targets=None, rewards=None, timesteps=None):
         b, t, s = states.size()   # b is batch size, t is block size, s is unsqueezed dimension
-        print(states.size())
         assert t <= self.block_size, "Cannot forward, model block size is exhausted."
 
         # forward the GPT model
-        print(f"\nstates of size: {states.size()} looks like:\n {states}\n")
+        # print(f"\nstates of size: {states.size()} looks like:\n {states}\n")
         # print(f"\ntargets of size: {targets.size()} looks like:\n {targets}\n")
 
         # state before embedding was size ([128, 30, 1]), state after should be ([128, 30, 128])
-        state_embeddings = self.state_encoder(states.type(torch.float32).contiguous())  # (batch, n_embd)
+        state_embeddings = self.state_embedding(states.type(torch.float32).contiguous())  # (batch, n_embd)
         state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.config.n_embd)
-        print(f"state_embeddings shape: {state_embeddings.shape}")
+        # print(f"state_embeddings shape: {state_embeddings.shape}")
 
-        # actions
-        if actions is not None and self.model_type == 'reward_conditioned':
-            rtg_embeddings = self.ret_emb(rtgs.type(torch.float32))
-            action_embeddings = self.action_embeddings(
+        if actions is not None:
+            reward_embeddings = self.reward_embedding(rewards.type(torch.float32))
+            action_embeddings = self.action_embedding(
                 actions.type(torch.long).squeeze(-1))  # (batch, block_size, n_embd)
+            # actions will only context of context_length - 1 if there are no targets given
+            action_embeddings = action_embeddings[:, -states.shape[1] + int(targets is None):, :]
 
-            # print(f"rtg_embeddings: {rtg_embeddings}")
+            # print(f"reward_embeddings shape: {reward_embeddings.shape}")
             # print(f"action_embeddings shape: {action_embeddings.shape}")
 
+            # Create the shape of our threefold token embeddings
             token_embeddings = torch.zeros(
-                (states.shape[0], states.shape[1] * 3 - int(targets is None), self.config.n_embd), dtype=torch.float32,
+                (states.shape[0], states.shape[1] * 3 - int(targets is None), self.config.n_embd),
+                dtype=torch.float32,
                 device=state_embeddings.device)
-            token_embeddings[:, ::3, :] = rtg_embeddings
+            # print(f"token_embeddings.shape: {token_embeddings.shape}")
+
+            token_embeddings[:, ::3, :] = reward_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
-            token_embeddings[:, 2::3, :] = action_embeddings[:, -states.shape[1] + int(targets is None):, :]
-        elif actions is None and self.model_type == 'reward_conditioned':  # only happens at very first timestep of evaluation
-            rtg_embeddings = self.ret_emb(rtgs.type(torch.float32))
+            token_embeddings[:, 2::3, :] = action_embeddings
+
+        elif actions is None:  # only happens at very first timestep of evaluation
+            reward_embeddings = self.reward_embedding(rewards.type(torch.float32))
 
             token_embeddings = torch.zeros((states.shape[0], states.shape[1] * 2, self.config.n_embd),
                                            dtype=torch.float32, device=state_embeddings.device)
-            token_embeddings[:, ::2, :] = rtg_embeddings  # really just [:,0,:]
+            token_embeddings[:, ::2, :] = reward_embeddings  # really just [:,0,:]
             token_embeddings[:, 1::2, :] = state_embeddings  # really just [:,1,:]
 
 
+        # do position embeddings - global_pos_emb of size ([1, max(timestep)+1, n_embd]) or ([1, 104, 128])
+        batch_size = states.shape[0]
+        all_global_pos_emb = torch.repeat_interleave(self.global_pos_emb, batch_size, dim=0)
 
-        # do token embeddings
-        token_embeddings = self.tok_emb(states) # each index maps to a (learnable) vector
-        print(f"\ntoken_embeddings of size: {token_embeddings.size()} looks like: {token_embeddings}\n")
+        position_embeddings = torch.gather(
+            all_global_pos_emb,
+            1,
+            torch.repeat_interleave(
+                timesteps,
+                self.config.n_embd,
+                dim=-1
+            )
+        ) + self.pos_emb[:, :token_embeddings.shape[1], :]
 
-        # do position embeddings
-        position_embeddings = self.pos_emb[:, :t, :] # each position maps to a (learnable) vector
-        print(f"\nposition_embeddings of size: {position_embeddings.size()} looks like: {position_embeddings}\n")
-        print(f"\nposition_embeddings first dim values: {position_embeddings[0][0]}")
+        # print(f"\nposition_embeddings of size: {position_embeddings.size()} looks like: {position_embeddings}\n")
 
         x = self.drop(token_embeddings + position_embeddings)
         x = self.blocks(x)
         x = self.ln_f(x)
-        print(f"x just before logits is size: {x.size()}")
+        # print(f"x just before logits is size: {x.size()}")
         logits = self.head(x)
-        if logits is not None:
-            print(f"logits is size: {logits.size()}")
+        # if logits is not None:
+        #     print(f"logits is size: {logits.size()}")
+
+        if actions is not None:
+            logits = logits[:, 1::3, :]  # only keep predictions from state_embeddings
+        elif actions is None:
+            logits = logits[:, 1:, :]
 
         # if we are given some desired targets also calculate the loss
         loss = None

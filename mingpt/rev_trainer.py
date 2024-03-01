@@ -75,21 +75,23 @@ class Trainer:
             losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
 
-            # Note that x,y,r are of size torch.Size([30]), or context length
-            for it, (x, y, r) in pbar:
+            # Note that x,y,r are of size torch.Size([30]), or context length, and t of size ([1])
+            for it, (x, y, r, t) in pbar:
 
                 # place data on the correct device
                 x = x.to(self.device)
                 y = y.to(self.device)
                 r = r.to(self.device)
+                t = t.to(self.device)
 
-                print(f"What does x of size: {x.size()} look like?:\n") # maybe DataLoader added that batch dim, if not, we must.
-                print(f"What does y of size: {y.size()} look like?:\n")
-                print(f"What does r of size: {r.size()} look like?:\n")
+                # print(f"What does x of size: {x.size()} look like?:")  # ([128, 30, 1])
+                # print(f"What does y of size: {y.size()} look like?:")  # ([128, 30, 1])
+                # print(f"What does r of size: {r.size()} look like?:")  # ([128, 30, 1])
+                # print(f"What does t of size: {t.size()} look like?:")  # ([128, 1, 1])
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
-                    logits, loss = model(x, y, y, r)
+                    logits, loss = model(x, y, y, r, t)
                     loss = loss.mean() # collapse all losses if they are scattered on multiple gpus
                     losses.append(loss.item())
 
@@ -119,9 +121,18 @@ class Trainer:
 
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}. lr {lr:e}")
-                    y = sample(model, x, 10, temperature=1.0, sample=True)[0]
-                    completion = ''.join([self.train_dataset.itos[int(i)] for i in y])
-                    print(completion)
+
+                    # lets sample a random state
+                    # print("hello!!!")
+
+                    """
+                    sampled_action = sample(self.model.module, 1, temperature=1.0, sample=True, top_k=None,
+                                            actions=torch.tensor(y, dtype=torch.long).to(self.device),
+                                            rewards=torch.tensor(r, dtype=torch.long).to(self.device),
+                                            timesteps=(min(x.size(-2), self.config.max_timestep)).unsqueeze(0), dtype=torch.int64).to(self.device))
+                                            )
+                    print(f"sampled_action is: {sampled_action.cpu().numpy()[0, -1]}")
+                    """
 
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
@@ -134,11 +145,13 @@ class Trainer:
                 return test_loss
 
 
+
         best_loss = float('inf')
         self.tokens = 0 # counter used for learning rate decay
         for epoch in range(config.max_epochs):
 
             run_epoch('train')
+            """
             if self.test_dataset is not None:
                 test_loss = run_epoch('test')
 
@@ -147,3 +160,4 @@ class Trainer:
             if self.config.ckpt_path is not None and good_model:
                 best_loss = test_loss
                 self.save_checkpoint()
+            """

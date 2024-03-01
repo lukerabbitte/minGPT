@@ -22,7 +22,6 @@ num_steps = 500000
 batch_size = 128
 context_length = 30
 # block_size = 30 * 3
-# model_type = 'reward_conditioned'
 
 class ReviewDataset(Dataset):
 
@@ -69,9 +68,9 @@ terminal_indices = get_terminal_indices(states)
 
 # Train
 train_dataset = ReviewDataset(states, actions, rewards, timesteps, terminal_indices, context_length * 3)
-print(f"max_timesteps is: {max(timesteps)}")
+# print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
-                  n_embd=128, max_timestep=max(timesteps)) # max_timestep is highest timestep ever achieved in training data
+                  n_embd=128, max_timestep=max(timesteps))
 model = GPT(mconf)
 
 # initialize a trainer instance and kick off training
@@ -79,6 +78,7 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=6e
                       lr_decay=True, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed,
-                      ckpt_path="checkpoints/model_checkpoint.pth")
+                      ckpt_path="checkpoints/model_checkpoint.pth",
+                      max_timestep=max(timesteps))
 trainer = Trainer(model, train_dataset, None, tconf)
 trainer.train()
