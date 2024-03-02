@@ -7,16 +7,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-def get_terminal_indices(arr):
-    idxs = {}
-    for i in reversed(range(len(arr))):
-        idxs[arr[i]] = i
-    done_idxs = list(idxs.values())
-    done_idxs.reverse()
-    done_idxs = done_idxs[1:]
-    done_idxs.append(len(arr))
-    return done_idxs
-
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -45,8 +35,12 @@ def sample(model, x, steps, temperature=1.0, sample=False, top_k=None, actions=N
             y = y if y.size(1) <= block_size//3 else y[:, -block_size//3:]
         r = r if r.size(1) <= block_size//3 else r[:, -block_size//3:]
         logits, _ = model(x_cond, actions=actions, targets=None, rewards=rewards, timesteps=timesteps)
+
         # pluck the logits at the final step and scale by temperature
+        # logits of dims ([128, 90, 273])
+        # since we have one prediction per 3 inputs, shouldn't this size be ([128, 30, 273])?
         logits = logits[:, -1, :] / temperature
+
         # optionally crop probabilities to only the top k options
         if top_k is not None:
             logits = top_k_logits(logits, top_k)
@@ -62,6 +56,17 @@ def sample(model, x, steps, temperature=1.0, sample=False, top_k=None, actions=N
         x = ix
 
     return x
+
+
+def get_terminal_indices(arr):
+    idxs = {}
+    for i in reversed(range(len(arr))):
+        idxs[arr[i]] = i
+    done_idxs = list(idxs.values())
+    done_idxs.reverse()
+    done_idxs = done_idxs[1:]
+    done_idxs.append(len(arr))
+    return done_idxs
 
 
 def get_next_filename(figs_dir, base_filename):

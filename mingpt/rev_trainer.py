@@ -127,7 +127,7 @@ class Trainer:
                     # print("hello!!!")
 
                     """
-                    sampled_action = sample(self.model.module, 1, temperature=1.0, sample=True, top_k=None,
+                    sampled_action = sample(model, 1, temperature=1.0, sample=True, top_k=None,
                                             actions=torch.tensor(y, dtype=torch.long).to(self.device),
                                             rewards=torch.tensor(r, dtype=torch.long).to(self.device),
                                             timesteps=(min(x.size(-2), self.config.max_timestep)).unsqueeze(0), dtype=torch.int64).to(self.device))
