@@ -36,34 +36,30 @@ class ReviewDataset(Dataset):
         self.vocab_size = max(actions) + 1
 
     def __len__(self):
-        return len(self.states)
+        return len(self.states) - self.block_size
 
     def __getitem__(self, idx):
-        start_indices = [0]
-        start_indices = start_indices + terminal_indices[:-1]
-
+        block_size = self.block_size // 3   # aka, the original context length
+        done_idx = idx + block_size
         for i in self.terminal_indices:
             if i > idx:  # find the first terminal index greater than idx
-                done_idx = i
+                done_idx = min(i, done_idx)
                 break
 
-        lookup = terminal_indices.index(done_idx)
-        if len(start_indices) == len(terminal_indices):
-            start_idx = start_indices[lookup]
+        idx = done_idx - block_size
 
         # Squeeze these tensors to give dimension for batch size expected by most APIs (b,t)
         # Notice that original paper didn't unsqueeze these until later
-        states = torch.tensor(np.array(self.states[start_idx:done_idx]), dtype=torch.float32).unsqueeze(1)
-        actions = torch.tensor(self.actions[start_idx:done_idx], dtype=torch.long).unsqueeze(1)
-        rewards = torch.tensor(self.rewards[start_idx:done_idx], dtype=torch.float32).unsqueeze(1)
+        states = torch.tensor(np.array(self.states[idx:done_idx]), dtype=torch.float32).unsqueeze(1)
+        actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)  # was (block_size, 1) back when there was an unsqueeze
+        rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
+        # print(f"states.size: {states.shape}")
 
-        print(f"states.shape: {states.shape}")
-        print(f"idx: {idx} and timesteps: {timesteps}")
         return states, actions, rewards, timesteps
 
 # Read in data
-data = pd.read_csv('goodreads_sparse.tsv', delimiter="\t")
+data = pd.read_csv('dummy_50.tsv', delimiter="\t")
 states = data['user_id'].tolist()
 # print(f"states: {states}")
 actions = data['item_id'].tolist()
@@ -82,7 +78,7 @@ model = GPT(mconf)
 
 # initialize a trainer instance and kick off training
 tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.0048,
-                      lr_decay=False, warmup_tokens=512 * 20,
+                      lr_decay=True, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed,
                       ckpt_path="checkpoints/model_checkpoint.pth",
@@ -90,7 +86,7 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
 trainer = Trainer(model, train_dataset, None, tconf)
 train_losses = trainer.train()
 
-# plot_loss(train_losses, None, context_length, batch_size,
-#           mconf.n_layer, mconf.n_head, mconf.n_embd, 'dummy_50.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+plot_loss(train_losses, None, context_length, batch_size,
+          mconf.n_layer, mconf.n_head, mconf.n_embd, 'dummy_50.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
 
 print(f"train_losses: {train_losses}")
