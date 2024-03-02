@@ -15,12 +15,13 @@ from mingpt.rev_model import GPT, GPTConfig
 from mingpt.rev_trainer import Trainer, TrainerConfig
 from mingpt.rev_utils import get_terminal_indices
 import argparse
+from mingpt.rev_utils import plot_loss
 
 seed = 123
 epochs = 30
-num_steps = 500000
 batch_size = 128
 context_length = 30
+# num_steps = 500000
 # block_size = 30 * 3
 
 class ReviewDataset(Dataset):
@@ -58,7 +59,7 @@ class ReviewDataset(Dataset):
         return states, actions, rewards, timesteps
 
 # Read in data
-data = pd.read_csv('dummy_50.tsv', delimiter="\t")
+data = pd.read_csv('goodreads_at_least_50_2.tsv', delimiter="\t")
 states = data['user_id'].tolist()
 actions = data['item_id'].tolist()
 actions = [a - 1 for a in actions]
@@ -68,6 +69,7 @@ terminal_indices = get_terminal_indices(states)
 
 # Train
 train_dataset = ReviewDataset(states, actions, rewards, timesteps, terminal_indices, context_length * 3)
+len_train_dataset = len(states)
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
                   n_embd=128, max_timestep=max(timesteps))
@@ -81,4 +83,9 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=6e
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(timesteps))
 trainer = Trainer(model, train_dataset, None, tconf)
-trainer.train()
+train_losses = trainer.train()
+
+plot_loss(train_losses, None, context_length, batch_size,
+          mconf.n_layer, mconf.n_head, mconf.n_embd, 'dummy_50.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+
+print(f"train_losses: {train_losses}")

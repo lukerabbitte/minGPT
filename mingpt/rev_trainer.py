@@ -15,6 +15,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data.dataloader import DataLoader
 from mingpt.rev_utils import sample
 
+
 logger = logging.getLogger(__name__)
 
 class TrainerConfig:
@@ -161,3 +162,5 @@ class Trainer:
                 best_loss = test_loss
                 self.save_checkpoint()
             """
+
+        return self.train_losses

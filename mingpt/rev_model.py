@@ -125,7 +125,7 @@ class GPT(nn.Module):
 
         # state, action, reward embeddings
         self.state_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
-        print(f"self.state_embedding:\n{self.state_embedding}\n")
+        # print(f"self.state_embedding:\n{self.state_embedding}\n")
         self.reward_embedding = nn.Sequential(nn.Linear(1, config.n_embd), nn.Tanh())
         # print(f"self.reward_embedding:\n{self.reward_embedding}\n")
         self.action_embedding = nn.Sequential(nn.Embedding(config.vocab_size, config.n_embd), nn.Tanh())
