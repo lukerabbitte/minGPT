@@ -266,19 +266,18 @@ class GPT(nn.Module):
         x = self.drop(token_embeddings + position_embeddings)
         x = self.blocks(x)
         x = self.ln_f(x)
-        print(f"last layer before logits is shape: {x.shape}")
         logits = self.head(x)
 
         if actions is not None:
             logits = logits[:, 1::3, :]  # only keep predictions from state_embeddings
-            print(f"logits after resize:\n{logits[1]}\n")
+            # print(f"logits shape after resize:\n{logits.shape}\n") ([128, 30, 273])
         elif actions is None:
             logits = logits[:, 1:, :]
 
         # if we are given some desired targets also calculate the loss
         loss = None
         if targets is not None:
-            print(f"targets :\n{targets}\n")
+            # print(f"targets :\n{targets.shape}\n") # ([128, 30, 1])
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
 
         return logits, loss

@@ -59,7 +59,7 @@ class ReviewDataset(Dataset):
         return states, actions, rewards, timesteps
 
 # Read in data
-data = pd.read_csv('dummy_50.tsv', delimiter="\t")
+data = pd.read_csv('goodreads_at_least_50_2.tsv', delimiter="\t")
 states = data['user_id'].tolist()
 actions = data['item_id'].tolist()
 actions = [a - 1 for a in actions]
