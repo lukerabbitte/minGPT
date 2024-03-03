@@ -58,9 +58,11 @@ class ReviewDataset(Dataset):
         rewards = torch.tensor(self.rewards[start_idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
 
-        print(f"states.shape: {states.shape}")
-        print(f"idx: {idx} and timesteps: {timesteps}")
+        # print(f"states.shape: {states.shape}")
+        # print(f"timesteps.shape: {timesteps.shape}")
+        # print(f"idx: {idx} and timesteps: {timesteps}")
         return states, actions, rewards, timesteps
+
 
 # Read in data
 data = pd.read_csv('goodreads_sparse.tsv', delimiter="\t")

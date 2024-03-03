@@ -79,6 +79,8 @@ class Trainer:
             # Note that x,y,r are of size torch.Size([30]), or context length, and t of size ([1])
             for it, (x, y, r, t) in pbar:
 
+                print(f"x is {x}")
+
                 # place data on the correct device
                 x = x.to(self.device)
                 y = y.to(self.device)
