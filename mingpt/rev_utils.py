@@ -6,6 +6,7 @@ from torch.nn import functional as F
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def set_seed(seed):
     random.seed(seed)
@@ -31,21 +32,22 @@ def sample(model, x, steps, temperature=1.0, sample=False, top_k=None, actions=N
     model.eval()
     for k in range(steps):
         x_cond = x if x.size(1) <= block_size else x[:, -block_size:] # crop context if needed
-        if y is not None:
-            y = y if y.size(1) <= block_size//3 else y[:, -block_size//3:]
-        r = r if r.size(1) <= block_size//3 else r[:, -block_size//3:]
+        if actions is not None:
+            actions = actions if actions.size(1) <= block_size//3 else actions[:, -block_size//3:]
+        rewards = rewards if rewards.size(1) <= block_size//3 else rewards[:, -block_size//3:]
         logits, _ = model(x_cond, actions=actions, targets=None, rewards=rewards, timesteps=timesteps)
 
         # pluck the logits at the final step and scale by temperature
-        # logits of dims ([128, 90, 273])
-        # since we have one prediction per 3 inputs, shouldn't this size be ([128, 30, 273])?
         logits = logits[:, -1, :] / temperature
+        # logits = logits / temperature
+        # print(f"logits shape is: {logits.shape}")
 
         # optionally crop probabilities to only the top k options
         if top_k is not None:
             logits = top_k_logits(logits, top_k)
         # apply softmax to convert to probabilities
         probs = F.softmax(logits, dim=-1)
+        # print(f"probs looks like: {probs.shape}")
         # sample from the distribution or take the most likely
         if sample:
             ix = torch.multinomial(probs, num_samples=1)
@@ -54,6 +56,7 @@ def sample(model, x, steps, temperature=1.0, sample=False, top_k=None, actions=N
         # append to the sequence and continue
         # x = torch.cat((x, ix), dim=1)
         x = ix
+        # print(f"x.shape: {x.shape}")
 
     return x
 
@@ -107,3 +110,14 @@ def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_
         base_filename = 'loss_plot_with_info'
         new_filename = get_next_filename(figs_dir, base_filename)
         plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
+
+
+def read_data(file_path):
+    data = pd.read_csv(file_path, delimiter="\t")
+    states = data['user_id'].tolist()
+    actions = data['item_id'].tolist()
+    actions = [a - 1 for a in actions]
+    rewards = data['rating'].tolist()
+    timesteps = data['timestep'].tolist()
+    terminal_indices = get_terminal_indices(states)  # Assuming get_terminal_indices is defined elsewhere
+    return states, actions, rewards, timesteps, terminal_indices

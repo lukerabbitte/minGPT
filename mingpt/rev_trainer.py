@@ -68,6 +68,7 @@ class Trainer:
         def run_epoch(split):
             is_train = split == 'train'
             model.train(is_train)
+            # print(f"is_train: {is_train}")
             data = self.train_dataset if is_train else self.test_dataset
             loader = DataLoader(data, shuffle=True, pin_memory=True,
                                 batch_size=config.batch_size,
@@ -85,10 +86,10 @@ class Trainer:
                 r = r.to(self.device)
                 t = t.to(self.device)
 
-                # print(f"What does x of size: {x.size()} look like?:")  # ([128, 30, 1])
-                # print(f"What does y of size: {y.size()} look like?:")  # ([128, 30, 1])
-                # print(f"What does r of size: {r.size()} look like?:")  # ([128, 30, 1])
-                # print(f"What does t of size: {t.size()} look like?:")  # ([128, 1, 1])
+                # print(f"Train?: {is_train} - what does x of size: {x.size()} look like?: x[1]")  # ([128, 30, 1])
+                # print(f"Train?: {is_train} - what does y of size: {y.size()} look like?: y[1]")  # ([128, 30, 1])
+                # print(f"Train?: {is_train} - what does r of size: {r.size()} look like?: r[1]")  # ([128, 30, 1])
+                # print(f"Train?: {is_train} - what does t of size: {t.size()} look like?: t[1]")  # ([128, 1, 1])
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
@@ -123,8 +124,9 @@ class Trainer:
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}. lr {lr:e}")
 
-                    # lets sample a random state
-                    # print("hello!!!")
+                    # lets sample
+                    sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=10.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rewards=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
+                    print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
 
                     """
                     sampled_action = sample(model, 1, temperature=1.0, sample=True, top_k=None,
@@ -135,12 +137,15 @@ class Trainer:
                     print(f"sampled_action is: {sampled_action.cpu().numpy()[0, -1]}")
                     """
 
+
+
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
                 print(f"train_loss is: {float(np.mean(losses))}")
 
             if not is_train:
                 test_loss = float(np.mean(losses))
+                self.test_losses.append(test_loss)
                 print(f"test_loss is: {float(np.mean(losses))}")
                 logger.info("test loss: %f", test_loss)
                 return test_loss
@@ -152,15 +157,14 @@ class Trainer:
         for epoch in range(config.max_epochs):
 
             run_epoch('train')
-            """
+
             if self.test_dataset is not None:
                 test_loss = run_epoch('test')
 
             # supports early stopping based on the test loss, or just save always if no test set is provided
-            good_model = self.test_dataset is None or test_loss < best_loss
-            if self.config.ckpt_path is not None and good_model:
-                best_loss = test_loss
-                self.save_checkpoint()
-            """
+            # good_model = self.test_dataset is None or test_loss < best_loss
+            #  if self.config.ckpt_path is not None and good_model:
+            #     best_loss = test_loss
+            #     self.save_checkpoint()
 
-        return self.train_losses
+        return self.train_losses, self.test_losses

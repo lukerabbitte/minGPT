@@ -13,13 +13,13 @@ import torch
 from torch.utils.data import Dataset
 from mingpt.rev_model import GPT, GPTConfig
 from mingpt.rev_trainer import Trainer, TrainerConfig
-from mingpt.rev_utils import get_terminal_indices
+from mingpt.rev_utils import read_data
 import argparse
 from mingpt.rev_utils import plot_loss
 
 seed = 123
 epochs = 10
-batch_size = 128
+batch_size = 64
 context_length = 30
 # num_steps = 500000
 # block_size = 30 * 3
@@ -58,35 +58,33 @@ class ReviewDataset(Dataset):
 
         return states, actions, rewards, timesteps
 
-# Read in data
-data = pd.read_csv('dummy_50.tsv', delimiter="\t")
-states = data['user_id'].tolist()
-# print(f"states: {states}")
-actions = data['item_id'].tolist()
-actions = [a - 1 for a in actions]
-rewards = data['rating'].tolist()
-timesteps = data['timestep'].tolist()
-terminal_indices = get_terminal_indices(states)
+# Read in train data and create dataset
+train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices = read_data('goodreads_train_modified.tsv')
+train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices, context_length * 3)
+len_train_dataset = len(train_states)
 
-# Train
-train_dataset = ReviewDataset(states, actions, rewards, timesteps, terminal_indices, context_length * 3)
-len_train_dataset = len(states)
+# Read in test data and create dataset
+test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices = read_data('test_dummy_50.tsv')
+test_dataset = ReviewDataset(test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices, context_length * 3)
+len_test_dataset = len(test_states)
+
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
-                  n_embd=128, max_timestep=max(timesteps))
+                  n_embd=128, max_timestep=max(train_timesteps))
 model = GPT(mconf)
 
 # initialize a trainer instance and kick off training
 tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.0048,
-                      lr_decay=True, warmup_tokens=512 * 20,
+                      lr_decay=False, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed,
                       ckpt_path="checkpoints/model_checkpoint.pth",
-                      max_timestep=max(timesteps))
+                      max_timestep=max(train_timesteps))
 trainer = Trainer(model, train_dataset, None, tconf)
-train_losses = trainer.train()
+train_losses, test_losses = trainer.train()
 
-plot_loss(train_losses, None, context_length, batch_size,
-          mconf.n_layer, mconf.n_head, mconf.n_embd, 'dummy_50.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+# plot_loss(train_losses, None, context_length, batch_size,
+#           mconf.n_layer, mconf.n_head, mconf.n_embd, 'dummy_50.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
 
 print(f"train_losses: {train_losses}")
+# print(f"test_losses: {test_losses}")
