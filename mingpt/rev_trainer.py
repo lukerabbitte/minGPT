@@ -169,61 +169,39 @@ class Trainer:
     def get_returns(self):
 
         self.model.train(False)
+        user_id = 4
+        eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
+        reward_sum = 0
 
-        # Get 10 unique users
-        user_ids = random.sample(range(1, 256 + 1), 10)
+        x = torch.tensor([4]).unsqueeze(0).unsqueeze(-1)
+        y = torch.tensor([116]).unsqueeze(0).unsqueeze(-1)
+        print(f"original y shape: {y.shape}")
+        r = torch.tensor([5]).unsqueeze(0).unsqueeze(-1)
+        t = torch.tensor([76]).unsqueeze(0).unsqueeze(-1)
 
-        # Will contain all the total rewards per user episode
-        total_rewards = []
+        for i in range(10):
+            print(f"x..shape: {x.shape}")
+            print(f"y.shape: {y.shape}")
+            print(f"r.shape: {r.shape}")
+            print(f"t.shape: {t.shape}")
+            sampled_action = sample(self.model, x, 1, temperature=10.0, sample=True, top_k=None, actions=y, rewards=r, timesteps=t)
+            action = sampled_action.squeeze(0).squeeze(0)
+            state_tensor = torch.tensor([[[4]]])
+            x = torch.cat((x, state_tensor), dim=1)
+            action_tensor = torch.tensor([[[action]]])
+            print(f"action tensor size: {action_tensor.shape}")
+            y = torch.cat((y, action_tensor), dim=1)
+            action = action + 1
+            print(f"sampled_action was: {action} for user: {4}")
+            action_index = np.where(eval_actions == action)
+            reward = eval_rewards[action_index]
+            print(f"reward for this action was: {reward} for user: {4}")
+            reward_sum += reward
+            reward_tensor = torch.tensor([[[reward]]])
+            r = torch.cat((r, reward_tensor), dim=1)
+            timestep_tensor = torch.tensor([[[i + 1]]])
+            t = torch.cat((t, timestep_tensor), dim=1)
 
-        for user_id in user_ids:
-
-            # Get a complete matrix for each user showing their interaction history
-            eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
-            # rtgs = [ret]
-            reward_sum = 0
-            sampled_actions = []
-            sampled_rewards = []
-
-            for i in range(10):
-                # State is simply userID at the moment, so we can start at any arbitrary point
-                state = eval_states[i]
-                print(f"state in get_returns looks like: {state}") # tensor([1.])
-                state = state.unsqueeze(0).unsqueeze(-1).to(self.device)
-                all_states = state if i == 0 else torch.cat([all_states, state], dim=1)
-
-                print(f"all_states.shape: {all_states.shape}")
-
-                # Handle initial case where state is just one state and actions are none
-                # rewards needs to be None at beginning, but once we use rtg it has initial value.
-                sampled_action = sample(self.model, all_states, 1, temperature=1.0, sample=True,
-                                        actions=None if i == 0 else torch.tensor(all_actions, dtype=torch.long).to(
-                                            self.device),
-                                        rewards=None if i == 0 else torch.tensor(sampled_rewards, dtype=torch.long).to(self.device).unsqueeze(
-                                            0).unsqueeze(-1),
-                                        timesteps=(min(i, self.config.max_timestep) * torch.ones((1, 1, 1),
-                                                    dtype=torch.int64).to(self.device)))
-
-                print(f"sampled_action shape: {sampled_action.shape}") # IF 2 DIM THEN UNSQUEEZE
-                # Find the reward corresponding to the generated action from our eval dataset
-                action = sampled_action.squeeze(0).squeeze(0)
-                action += 1  # action straight from model is 0-indexed, we want 1-indexed
-                print(f"Action for user {user_id} was {action}")
-                all_actions = torch.cat([all_actions, sampled_action], dim=1) # IF 2 DIM THEN WON'T WORK
-
-                action_index = np.where(eval_actions == action)[0][0]
-                print(f"This action corresponds to line: {action_index}")
-                reward = eval_rewards[action_index] # rewards_user is a simple numpy array so no reshaping needed
-                # print(f"Reward for user {user_id} was {reward}")
-
-                sampled_actions += [sampled_action]
-                sampled_rewards += [reward]
-
-            total_rewards.append(reward_sum)
-            # print(f"Recommended 10 new items to the user of id \"{user_id}\", wanted an accumulative total of {ret}, "
-            #       f"got {reward_sum}")
-
-        eval_return = sum(total_rewards) / 10.
-        print("Desired average return across ten 10-recommendation sequences: %d, Actual average return: %d" % (50, eval_return))
+        print("Desired return across 10-recommendation sequence for user 4: %d, Actual average return: %d" % (50, reward_sum))
         self.model.train(True)
-        return eval_return
+        return reward_sum

@@ -105,6 +105,7 @@ class GPT(nn.Module):
         super().__init__()
 
         self.config = config
+        self.model_type = config.model_type
 
         # input embedding stem
         self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
@@ -217,7 +218,7 @@ class GPT(nn.Module):
         state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.config.n_embd)
         # print(f"state_embeddings shape: {state_embeddings.shape}")
 
-        if actions is not None:
+        if actions is not None and self.model_type == 'reward_conditioned':
             reward_embeddings = self.reward_embedding(rewards.type(torch.float32))
             action_embeddings = self.action_embedding(
                 actions.type(torch.long).squeeze(-1))  # (batch, block_size, n_embd)
@@ -237,15 +238,13 @@ class GPT(nn.Module):
             token_embeddings[:, ::3, :] = reward_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
             token_embeddings[:, 2::3, :] = action_embeddings
-
-        elif actions is None:  # only happens at very first timestep of evaluation
+        elif actions is None and self.model_type == 'reward_conditioned':  # only happens at very first timestep of evaluation
             reward_embeddings = self.reward_embedding(rewards.type(torch.float32))
 
             token_embeddings = torch.zeros((states.shape[0], states.shape[1] * 2, self.config.n_embd),
                                            dtype=torch.float32, device=state_embeddings.device)
             token_embeddings[:, ::2, :] = reward_embeddings  # really just [:,0,:]
             token_embeddings[:, 1::2, :] = state_embeddings  # really just [:,1,:]
-
 
         # do position embeddings - global_pos_emb of size ([1, max(timestep)+1, n_embd]) or ([1, 104, 128])
         batch_size = states.shape[0]

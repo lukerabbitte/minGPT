@@ -21,6 +21,7 @@ seed = 123
 epochs = 10
 batch_size = 64
 context_length = 30
+model_type = 'reward_conditioned'
 # num_steps = 500000
 # block_size = 30 * 3
 
@@ -118,14 +119,14 @@ len_eval_dataset = len(eval_states)
 
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
-                  n_embd=128, max_timestep=max(train_timesteps))
+                  n_embd=128, model_type=model_type, max_timestep=max(train_timesteps))
 model = GPT(mconf)
 
 # initialize a trainer instance and kick off training
 tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.0048,
                       lr_decay=False, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
-                      num_workers=4, seed=seed,
+                      num_workers=4, seed=seed, model_type=model_type,
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps))
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
