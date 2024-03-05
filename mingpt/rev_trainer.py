@@ -126,13 +126,14 @@ class Trainer:
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}. lr {lr:e}")
 
-                    """
+                    # print(f"x[-1].shape is: {x[-1].shape}")  # ([30, 1])
+
                     # lets sample
-                    sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=10.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rewards=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
-                    print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
-                    """
+                    # sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=10.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rewards=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
+                    # print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
+                    # print(sampled_action.shape)
 
-
+                    self.get_returns()
 
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
@@ -162,7 +163,6 @@ class Trainer:
             #     best_loss = test_loss
             #     self.save_checkpoint()
 
-        self.get_returns()
 
         return self.train_losses, self.test_losses
 
@@ -182,36 +182,42 @@ class Trainer:
             eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
             # rtgs = [ret]
             reward_sum = 0
-            actions = []
+            sampled_actions = []
+            sampled_rewards = []
 
             for i in range(10):
                 # State is simply userID at the moment, so we can start at any arbitrary point
                 state = eval_states[i]
-                print(f"state in get_returns looks like: {state}")
-                state = state.unsqueeze(0).unsqueeze(0).to(self.device)
-                all_states = state if i == 0 else torch.cat([all_states, state], dim=0)
+                print(f"state in get_returns looks like: {state}") # tensor([1.])
+                state = state.unsqueeze(0).unsqueeze(-1).to(self.device)
+                all_states = state if i == 0 else torch.cat([all_states, state], dim=1)
+
+                print(f"all_states.shape: {all_states.shape}")
 
                 # Handle initial case where state is just one state and actions are none
-                sampled_action = sample(self.model.module, all_states.unsqueeze(0), 1, temperature=1.0, sample=True,
-                                        actions=None if i == 0 else torch.tensor(actions, dtype=torch.long).to(
-                                            self.device).unsqueeze(
-                                            1).unsqueeze(0),
-                                        rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(
+                # rewards needs to be None at beginning, but once we use rtg it has initial value.
+                sampled_action = sample(self.model, all_states, 1, temperature=1.0, sample=True,
+                                        actions=None if i == 0 else torch.tensor(all_actions, dtype=torch.long).to(
+                                            self.device),
+                                        rewards=None if i == 0 else torch.tensor(sampled_rewards, dtype=torch.long).to(self.device).unsqueeze(
                                             0).unsqueeze(-1),
                                         timesteps=(min(i, self.config.max_timestep) * torch.ones((1, 1, 1),
-                                                                                                 dtype=torch.int64).to(
-                                            self.device)))
+                                                    dtype=torch.int64).to(self.device)))
 
+                print(f"sampled_action shape: {sampled_action.shape}") # IF 2 DIM THEN UNSQUEEZE
                 # Find the reward corresponding to the generated action from our eval dataset
-                action = sampled_action.cpu().numpy()[0, -1]
+                action = sampled_action.squeeze(0).squeeze(0)
                 action += 1  # action straight from model is 0-indexed, we want 1-indexed
                 print(f"Action for user {user_id} was {action}")
-                action_index = np.where(actions_user == action)[0][0]
-                reward = rewards_user[action_index] # rewards_user is a simple numpy array so no reshaping needed
+                all_actions = torch.cat([all_actions, sampled_action], dim=1) # IF 2 DIM THEN WON'T WORK
+
+                action_index = np.where(eval_actions == action)[0][0]
+                print(f"This action corresponds to line: {action_index}")
+                reward = eval_rewards[action_index] # rewards_user is a simple numpy array so no reshaping needed
                 # print(f"Reward for user {user_id} was {reward}")
-                reward_sum += reward
-                actions += [sampled_action]
-                rtgs += [rtgs[-1] - reward]
+
+                sampled_actions += [sampled_action]
+                sampled_rewards += [reward]
 
             total_rewards.append(reward_sum)
             # print(f"Recommended 10 new items to the user of id \"{user_id}\", wanted an accumulative total of {ret}, "

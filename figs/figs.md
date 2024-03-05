@@ -7,3 +7,4 @@
 - 9 through 11 show buildup of same training run.
 - 12 compares to 6 but has context length of 10. Worse.
 - 13 is literally 12 but with context length back up to 30. (Wait, this is now same as 5).
+- 14 uses more extreme dataset, but crucially has good performance compared to 6, which is on a tiny dataset.

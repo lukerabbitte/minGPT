@@ -54,10 +54,10 @@ class ReviewDataset(Dataset):
         actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)  # was (block_size, 1) back when there was an unsqueeze
         rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
-        print(f"states.size: {states.shape}")
-        print(f"actions.size: {actions.shape}")
-        print(f"rewards.size: {rewards.shape}")
-        print(f"timesteps.size: {timesteps.shape}")
+        # print(f"states.size: {states.shape}")
+        # print(f"actions.size: {actions.shape}")
+        # print(f"rewards.size: {rewards.shape}")
+        # print(f"timesteps.size: {timesteps.shape}")
 
         return states, actions, rewards, timesteps
 
@@ -103,7 +103,7 @@ class EvalDataset(Dataset):
 
 # Read in train data and create dataset
 train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices = read_data(
-    'goodreads_train_smaller_modified.tsv')
+    'dummy_50.tsv')
 train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
