@@ -54,19 +54,67 @@ class ReviewDataset(Dataset):
         actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)  # was (block_size, 1) back when there was an unsqueeze
         rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
-        # print(f"states.size: {states.shape}")
+        print(f"states.size: {states.shape}")
+        print(f"actions.size: {actions.shape}")
+        print(f"rewards.size: {rewards.shape}")
+        print(f"timesteps.size: {timesteps.shape}")
 
         return states, actions, rewards, timesteps
 
+
+class EvalDataset(Dataset):
+
+    def __init__(self, states, actions, rewards, timesteps, terminal_indices, block_size):
+        self.states = states
+        self.actions = actions
+        self.rewards = rewards
+        self.timesteps = timesteps
+        self.terminal_indices = terminal_indices
+        self.block_size = block_size
+        self.vocab_size = max(actions) + 1
+
+    def __len__(self):
+        return len(self.states)
+
+    def __getitem__(self, idx):
+        start_indices = [0]
+        start_indices = start_indices + self.terminal_indices[:-1]
+
+        for i in self.terminal_indices:
+            if i > idx:  # find the first terminal index greater than idx
+                done_idx = i
+                break
+
+        lookup = self.terminal_indices.index(done_idx)
+        if len(start_indices) == len(self.terminal_indices):
+            start_idx = start_indices[lookup]
+
+        # Squeeze these tensors to give dimension for batch size expected by most APIs (b,t)
+        # Notice that original paper didn't unsqueeze these until later
+        states = torch.tensor(np.array(self.states[start_idx:done_idx]), dtype=torch.float32).unsqueeze(1)
+        actions = torch.tensor(self.actions[start_idx:done_idx], dtype=torch.long).unsqueeze(1)
+        rewards = torch.tensor(self.rewards[start_idx:done_idx], dtype=torch.float32).unsqueeze(1)
+        timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
+
+        # print(f"states.shape: {states.shape}")
+        # print(f"timesteps.shape: {timesteps.shape}")
+        # print(f"idx: {idx} and timesteps: {timesteps}")
+        return states, actions, rewards, timesteps
+
 # Read in train data and create dataset
-train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices = read_data('goodreads_train_modified.tsv')
+train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices = read_data(
+    'goodreads_train_smaller_modified.tsv')
 train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
 # Read in test data and create dataset
-test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices = read_data('test_dummy_50.tsv')
-test_dataset = ReviewDataset(test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices, context_length * 3)
-len_test_dataset = len(test_states)
+# test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices = read_data('test_dummy_50.tsv')
+# test_dataset = ReviewDataset(test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices, context_length * 3)
+# len_test_dataset = len(test_states)
+
+eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices = read_data('goodreads_eval_modified.tsv')
+eval_dataset = EvalDataset(eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices, context_length * 3)
+len_eval_dataset = len(eval_states)
 
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
@@ -80,7 +128,7 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       num_workers=4, seed=seed,
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps))
-trainer = Trainer(model, train_dataset, None, tconf)
+trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, test_losses = trainer.train()
 
 # plot_loss(train_losses, None, context_length, batch_size,

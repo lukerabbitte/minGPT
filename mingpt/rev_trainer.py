@@ -14,6 +14,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data.dataloader import DataLoader
 from mingpt.rev_utils import sample
+import random
 
 
 logger = logging.getLogger(__name__)
@@ -40,11 +41,12 @@ class TrainerConfig:
 
 class Trainer:
 
-    def __init__(self, model, train_dataset, test_dataset, config):
+    def __init__(self, model, train_dataset, test_dataset, config, eval_dataset):
         self.model = model
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
         self.config = config
+        self.eval_dataset = eval_dataset
         self.train_losses = []
         self.test_losses = []
 
@@ -124,17 +126,10 @@ class Trainer:
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}. lr {lr:e}")
 
+                    """
                     # lets sample
                     sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=10.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rewards=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
                     print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
-
-                    """
-                    sampled_action = sample(model, 1, temperature=1.0, sample=True, top_k=None,
-                                            actions=torch.tensor(y, dtype=torch.long).to(self.device),
-                                            rewards=torch.tensor(r, dtype=torch.long).to(self.device),
-                                            timesteps=(min(x.size(-2), self.config.max_timestep)).unsqueeze(0), dtype=torch.int64).to(self.device))
-                                            )
-                    print(f"sampled_action is: {sampled_action.cpu().numpy()[0, -1]}")
                     """
 
 
@@ -167,4 +162,62 @@ class Trainer:
             #     best_loss = test_loss
             #     self.save_checkpoint()
 
+        self.get_returns()
+
         return self.train_losses, self.test_losses
+
+    def get_returns(self):
+
+        self.model.train(False)
+
+        # Get 10 unique users
+        user_ids = random.sample(range(1, 256 + 1), 10)
+
+        # Will contain all the total rewards per user episode
+        total_rewards = []
+
+        for user_id in user_ids:
+
+            # Get a complete matrix for each user showing their interaction history
+            eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
+            # rtgs = [ret]
+            reward_sum = 0
+            actions = []
+
+            for i in range(10):
+                # State is simply userID at the moment, so we can start at any arbitrary point
+                state = eval_states[i]
+                print(f"state in get_returns looks like: {state}")
+                state = state.unsqueeze(0).unsqueeze(0).to(self.device)
+                all_states = state if i == 0 else torch.cat([all_states, state], dim=0)
+
+                # Handle initial case where state is just one state and actions are none
+                sampled_action = sample(self.model.module, all_states.unsqueeze(0), 1, temperature=1.0, sample=True,
+                                        actions=None if i == 0 else torch.tensor(actions, dtype=torch.long).to(
+                                            self.device).unsqueeze(
+                                            1).unsqueeze(0),
+                                        rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(
+                                            0).unsqueeze(-1),
+                                        timesteps=(min(i, self.config.max_timestep) * torch.ones((1, 1, 1),
+                                                                                                 dtype=torch.int64).to(
+                                            self.device)))
+
+                # Find the reward corresponding to the generated action from our eval dataset
+                action = sampled_action.cpu().numpy()[0, -1]
+                action += 1  # action straight from model is 0-indexed, we want 1-indexed
+                print(f"Action for user {user_id} was {action}")
+                action_index = np.where(actions_user == action)[0][0]
+                reward = rewards_user[action_index] # rewards_user is a simple numpy array so no reshaping needed
+                # print(f"Reward for user {user_id} was {reward}")
+                reward_sum += reward
+                actions += [sampled_action]
+                rtgs += [rtgs[-1] - reward]
+
+            total_rewards.append(reward_sum)
+            # print(f"Recommended 10 new items to the user of id \"{user_id}\", wanted an accumulative total of {ret}, "
+            #       f"got {reward_sum}")
+
+        eval_return = sum(total_rewards) / 10.
+        print("Desired average return across ten 10-recommendation sequences: %d, Actual average return: %d" % (50, eval_return))
+        self.model.train(True)
+        return eval_return
