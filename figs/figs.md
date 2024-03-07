@@ -17,5 +17,7 @@
   but still it doesn't look too promising.
 - 16 does the same with another user.
 - Maybe to be accurate I need to do as an average across all users?
+- 17 tries with yet another user.
+- 18 is same as 17, but tries average building up over 30 recs rather than 10 at eval stage.
 
 - Note that 1 - 16 were all for 'reward-only' architectures. After, we try re-including rtg and seeing the difference.

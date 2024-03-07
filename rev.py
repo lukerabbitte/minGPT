@@ -27,7 +27,7 @@ model_type = 'reward_conditioned'
 
 class ReviewDataset(Dataset):
 
-    def __init__(self, states, actions, rewards, timesteps, terminal_indices, block_size):
+    def __init__(self, states, actions, rewards, returns, returns_to_go, timesteps, terminal_indices, block_size):
         self.states = states
         self.actions = actions
         self.rewards = rewards
@@ -103,9 +103,9 @@ class EvalDataset(Dataset):
         return states, actions, rewards, timesteps
 
 # Read in train data and create dataset
-train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices = read_data(
+train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices = read_data(
     'goodreads_eval_modified_20pc.tsv')
-train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_timesteps, train_terminal_indices, context_length * 3)
+train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
 # Read in test data and create dataset
