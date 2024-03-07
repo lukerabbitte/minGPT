@@ -118,6 +118,25 @@ def read_data(file_path):
     actions = data['item_id'].tolist()
     actions = [a - 1 for a in actions]
     rewards = data['rating'].tolist()
+    returns = []
+    returns_to_go = np.zeros_like(rewards)
     timesteps = data['timestep'].tolist()
     terminal_indices = get_terminal_indices(states)  # Assuming get_terminal_indices is defined elsewhere
-    return states, actions, rewards, timesteps, terminal_indices
+
+    start_index = 0
+    # Generate returns-to-go
+    for i in terminal_indices:
+        rewards_by_episode = rewards[start_index:i]
+        # print(f"rewards_by_episode: {rewards_by_episode} for data up to done_idx: {i}\n")
+        returns = np.append(returns, sum(rewards_by_episode))
+        for j in range(i - 1, start_index - 1, -1):
+            rewards_by_reverse_growing_episode = rewards_by_episode[j - start_index:i - start_index]
+            # print(f"rewards_by_reverse_growing_episode: {rewards_by_reverse_growing_episode}\n")
+            returns_to_go[j] = sum(rewards_by_reverse_growing_episode)
+            # print(f"returns_to_go: {returns_to_go}")
+        start_index = i
+
+    print(f"returns: {len(returns)}\n")
+    print(f"returns_to_go: {returns_to_go}")
+
+    return states, actions, rewards, returns, returns_to_go, timesteps, terminal_indices
