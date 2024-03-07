@@ -7,6 +7,15 @@
 - 9 through 11 show buildup of same training run.
 - 12 compares to 6 but has context length of 10. Worse.
 - 13 is literally 12 but with context length back up to 30. (Wait, this is now same as 5).
-- 14 uses more extreme dataset, but crucially has good performance compared to 6, which is on a tiny dataset.
+- 14 uses more 'extreme' dataset, where 4s and 5s become 5s and 1s, 2s, and 3s become 1s in the star
+  ratings. It has quite good performance in terms of loss coming down.
+- 15 also uses more 'extreme' dataset - I took `goodreads_eval_modified.tsv` and split it 80/20. I then took the
+  `goodreads_eval_modified_20pc.tsv` and trained on that. This guaranteed the same distribution of 1 and 5-star ratings between the 
+  `goodreads_eval_modified.tsv` and the `goodreads_eval_modified_20pc.tsv`. `queries/rating_split.py`
+  can be used to demonstrate this. The actual sampling was done by taking the user_id, item_id, rating,
+  and timestep from the very last timestep for user 4. Of course, we could do a wider test on more users,
+  but still it doesn't look too promising.
+- 16 does the same with another user.
+- Maybe to be accurate I need to do as an average across all users?
 
-- Note that 1 - 14 were all for 'reward-only' architectures.
+- Note that 1 - 16 were all for 'reward-only' architectures. After, we try re-including rtg and seeing the difference.
