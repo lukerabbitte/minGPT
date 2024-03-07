@@ -31,6 +31,8 @@ class ReviewDataset(Dataset):
         self.states = states
         self.actions = actions
         self.rewards = rewards
+        self.returns = returns
+        self.returns_to_go = returns_to_go
         self.timesteps = timesteps
         self.terminal_indices = terminal_indices
         self.block_size = block_size
@@ -53,14 +55,14 @@ class ReviewDataset(Dataset):
         # Notice that original paper didn't unsqueeze these until later
         states = torch.tensor(np.array(self.states[idx:done_idx]), dtype=torch.float32).unsqueeze(1)
         actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)  # was (block_size, 1) back when there was an unsqueeze
-        rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
+        returns_to_go = torch.tensor(self.returns_to_go[idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
         # print(f"states.size: {states.shape}")
         # print(f"actions.size: {actions.shape}")
         # print(f"rewards.size: {rewards.shape}")
         # print(f"timesteps.size: {timesteps.shape}")
 
-        return states, actions, rewards, timesteps
+        return states, actions, returns_to_go, timesteps
 
 
 class EvalDataset(Dataset):
@@ -113,7 +115,7 @@ len_train_dataset = len(train_states)
 # test_dataset = ReviewDataset(test_states, test_actions, test_rewards, test_timesteps, test_terminal_indices, context_length * 3)
 # len_test_dataset = len(test_states)
 
-eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices = read_data('goodreads_eval_modified.tsv')
+eval_states, eval_actions, eval_rewards, _, _, eval_timesteps, eval_terminal_indices = read_data('goodreads_eval_modified.tsv')
 eval_dataset = EvalDataset(eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices, context_length * 3)
 len_eval_dataset = len(eval_states)
 

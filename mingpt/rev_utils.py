@@ -136,7 +136,8 @@ def read_data(file_path):
             # print(f"returns_to_go: {returns_to_go}")
         start_index = i
 
-    print(f"returns: {len(returns)}\n")
-    print(f"returns_to_go: {returns_to_go}")
+    # print(f"states: {states}")
+    # print(f"actions: {actions}")
+    # print(f"returns_to_go: {returns_to_go}")
 
     return states, actions, rewards, returns, returns_to_go, timesteps, terminal_indices

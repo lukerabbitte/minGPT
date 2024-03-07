@@ -94,7 +94,7 @@ class Trainer:
 
                 # print(f"Train?: {is_train} - what does x of size: {x.size()} look like?: x[1]")  # ([128, 30, 1])
                 # print(f"Train?: {is_train} - what does y of size: {y.size()} look like?: y[1]")  # ([128, 30, 1])
-                # print(f"Train?: {is_train} - what does r of size: {r.size()} look like?: r[1]")  # ([128, 30, 1])
+                print(f"Train?: {is_train} - what does r of size: {r.size()} for user: {x.squeeze(0).squeeze(-1)} look like?: {r[1]}")  # ([128, 30, 1])
                 # print(f"Train?: {is_train} - what does t of size: {t.size()} look like?: t[1]")  # ([128, 1, 1])
 
                 # forward the model
@@ -138,9 +138,9 @@ class Trainer:
                     # print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
                     # print(sampled_action.shape)
 
-                rewards_per_iteration.append(self.get_returns())
+                # rewards_per_iteration.append(self.get_returns()) TODO
 
-            self.average_rewards_per_epoch.append(np.mean(rewards_per_iteration))
+            # self.average_rewards_per_epoch.append(np.mean(rewards_per_iteration)) TODO
 
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
@@ -170,7 +170,7 @@ class Trainer:
 
         return self.train_losses, self.test_losses, self.average_rewards_per_epoch
 
-    def get_returns(self):
+    def get_returns(self, ret):
 
         self.model.train(False)
         user_id = 83
