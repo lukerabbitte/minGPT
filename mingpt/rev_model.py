@@ -221,9 +221,12 @@ class GPT(nn.Module):
         if actions is not None:
             return_to_go_embeddings = self.return_to_go_embedding(returns_to_go.type(torch.float32))
             action_embeddings = self.action_embedding(
-                actions.type(torch.long).squeeze(-1))  # (batch, block_size, n_embd)
+                actions.type(torch.long).squeeze(-1)
+            )  # (batch, block_size, n_embd)
             # actions will only have context of (context_length - 1) if there are no targets given
-            action_embeddings = action_embeddings[:, -states.shape[1] + int(targets is None):, :] # TODO print this line to see what's going on
+            # print(f"action_embeddings before of size: {action_embeddings.shape} and looks like: action_embeddings")
+            action_embeddings = action_embeddings[:, -states.shape[1] + int(targets is None):, :]
+            # print(f"action_embeddings after of size: {action_embeddings.shape} and looks like: action_embeddings")
 
             # print(f"return_to_go_embeddings shape: {return_to_go_embeddings.shape}")
             # print(f"action_embeddings shape: {action_embeddings.shape}")
@@ -268,24 +271,28 @@ class GPT(nn.Module):
         x = self.ln_f(x)
         logits = self.head(x)
 
+        # print(f"logits shape before resize: {logits.shape}") # torch.Size([64, 90, 273])
         if actions is not None:
-            logits = logits[:, 1::3, :]  # only keep predictions from state_embeddings
+            logits = logits[:, 1::3, :]  # only keep predictions from state_embeddings because this is what we feed to begin
             # print(f"logits shape after resize:\n{logits.shape}\n") ([128, 30, 273])
         elif actions is None:
             logits = logits[:, 1:, :]
 
         # if we are given some desired targets also calculate the loss
         loss = None
+        # print(f"targets.view(-1) is {targets.view(-1).shape}")
         if targets is not None:
             # print(f"targets :\n{targets.shape}\n") # ([128, 30, 1])
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            print("he")
+            print(logits.view(-1, logits.size(-1)).shape)
+            print(targets.view(-1).shape)
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))  # CE(
 
-        # get an actual prediction per 'forward'
-        # print(f"logits was of size: {logits.size()}")
-        # logits = logits[:, -1, :]
-        # print(f"logits plucked at final step: {logits.size()}")
-        # probs = F.softmax(logits, dim=-1)
-        # ix = torch.multinomial(probs, num_samples=1)
-        # print(f"action predicted was: {ix}")
+        logits_sample = logits[:, -1, :]
+        probs = F.softmax(logits_sample, dim=-1)
+        ix = torch.multinomial(probs, num_samples=1)
+        # print(f"ix is {ix}")
+        # for i in range(states.size(0)):
+        #     print(f"prediction for user {states[i][1].squeeze(0)} is {ix[i].squeeze(0) + 1}")
 
         return logits, loss

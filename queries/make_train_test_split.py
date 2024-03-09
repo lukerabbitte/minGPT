@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-df = pd.read_csv('../goodreads_eval_modified.tsv', sep='\t')
+df = pd.read_csv('../data/goodreads_eval_modified.tsv', sep='\t')
 
 train_data = pd.DataFrame()
 test_data = pd.DataFrame()

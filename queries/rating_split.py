@@ -2,7 +2,7 @@ import pandas as pd
 
 # Assuming the dataset is stored in a pandas DataFrame named df
 # Load the dataset into a DataFrame (replace df with your DataFrame)
-df = pd.read_csv("../goodreads_eval_modified.tsv", sep='\t')
+df = pd.read_csv("../data/goodreads_eval_modified.tsv", sep='\t')
 
 # Percentage of '5' ratings: 65.43898809523809
 # Percentage of '1' ratings: 34.561011904761905

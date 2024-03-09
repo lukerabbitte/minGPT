@@ -50,7 +50,7 @@ class Trainer:
         self.eval_dataset = eval_dataset
         self.train_losses = []
         self.test_losses = []
-        self.average_rewards_per_epoch = []
+        self.rewards_per_epoch = []
 
         # take over whatever gpus are on the system
         self.device = 'cpu'
@@ -94,7 +94,7 @@ class Trainer:
 
                 # print(f"Train?: {is_train} - what does x of size: {x.size()} look like?: x[1]")  # ([128, 30, 1])
                 # print(f"Train?: {is_train} - what does y of size: {y.size()} look like?: y[1]")  # ([128, 30, 1])
-                print(f"Train?: {is_train} - what does r of size: {r.size()} for user: {x.squeeze(0).squeeze(-1)} look like?: {r[1]}")  # ([128, 30, 1])
+                # print(f"Train?: {is_train} - what does r of size: {r.size()} for user: {x[1]} and actions: {y[1]} look like?: {r[1]}")  # ([128, 30, 1])
                 # print(f"Train?: {is_train} - what does t of size: {t.size()} look like?: t[1]")  # ([128, 1, 1])
 
                 # forward the model
@@ -138,9 +138,7 @@ class Trainer:
                     # print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
                     # print(sampled_action.shape)
 
-                # rewards_per_iteration.append(self.get_returns()) TODO
 
-            # self.average_rewards_per_epoch.append(np.mean(rewards_per_iteration)) TODO
 
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
@@ -159,8 +157,8 @@ class Trainer:
 
             run_epoch('train')
 
-            if self.test_dataset is not None:
-                test_loss = run_epoch('test')
+            # if self.test_dataset is not None:
+            #     test_loss = run_epoch('test')
 
             # supports early stopping based on the test loss, or just save always if no test set is provided
             # good_model = self.test_dataset is None or test_loss < best_loss
@@ -168,43 +166,49 @@ class Trainer:
             #     best_loss = test_loss
             #     self.save_checkpoint()
 
-        return self.train_losses, self.test_losses, self.average_rewards_per_epoch
+            self.rewards_per_epoch.append(self.get_returns(1))
 
-    def get_returns(self, ret):
+        return self.train_losses, self.test_losses, self.rewards_per_epoch
 
+    def get_returns(self, no_recs):
+
+        ideal_return = no_recs * 5
         self.model.train(False)
-        user_id = 83
+        user_id = random.randint(1, 256)
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
+        rtgs = [ideal_return]
+        actions = []
         reward_sum = 0
 
-        x = torch.tensor([83]).unsqueeze(0).unsqueeze(-1)
-        y = torch.tensor([78]).unsqueeze(0).unsqueeze(-1)
-        r = torch.tensor([1]).unsqueeze(0).unsqueeze(-1)
-        t = torch.tensor([55]).unsqueeze(0).unsqueeze(-1)
+        for i in range(no_recs):
+            state = eval_states[i]  # shape (b, t)
+            state = state.unsqueeze(0).unsqueeze(0).to(self.device)
+            all_states = state if i == 0 else torch.cat([all_states, state], dim=0)
 
-        for i in range(30):
-            # print(f"x..shape: {x.shape}")
-            # print(f"y.shape: {y.shape}")
-            # print(f"r.shape: {r.shape}")
-            # print(f"t.shape: {t.shape}")
-            sampled_action = sample(self.model, x, 1, temperature=10.0, sample=True, top_k=None, actions=y, rewards=r,
-                                    timesteps=t)
-            action = sampled_action.squeeze(0).squeeze(0)
-            state_tensor = torch.tensor([[[83]]])
-            x = torch.cat((x, state_tensor), dim=1)
-            action_tensor = torch.tensor([[[action]]])
-            y = torch.cat((y, action_tensor), dim=1)
-            # print(f"sampled_action was: {action} for user: {83}")
-            action_index = np.where(eval_actions == action)
+            # Handle initial case where state is just one state and actions are none
+            sampled_action = sample(self.model, all_states.unsqueeze(0), 1, temperature=1.0, sample=True,
+                                    actions=None if i == 0 else torch.tensor(actions, dtype=torch.long).to(
+                                        self.device).unsqueeze(
+                                        1).unsqueeze(0),
+                                    rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(
+                                        0).unsqueeze(-1),
+                                    timesteps=(min(i, self.config.max_timestep) * torch.ones((1, 1, 1),
+                                                                                             dtype=torch.int64).to(
+                                        self.device)))
+
+            print(f"str8 from model, sampled_action is: {sampled_action}")
+            # Find the reward corresponding to the generated action from our eval dataset
+            action = sampled_action.cpu().numpy()[0, -1]
+            action += 1  # action straight from model is 0-indexed, we want 1-indexed
+            print(f"Action for user {user_id} was {action}")
+            action_index = np.where(eval_actions == action)[0][0]
             reward = eval_rewards[action_index]
-            action = action + 1
-            # print(f"reward for this action {action} was: {reward.squeeze(0)} for user {83}")
+            print(f"Reward for user {user_id} was {reward}")
             reward_sum += reward
-            reward_tensor = torch.tensor([[[reward]]])
-            r = torch.cat((r, reward_tensor), dim=1)
-            t = torch.tensor([[[i + 1]]])
+            actions += [sampled_action]
+            rtgs += [rtgs[-1] - reward]
 
-        print("Desired return across 10-recommendation sequence for user 4: %d, Actual average return: %d" % (
-        50, reward_sum))
+
+        print(f"Just recommended {no_recs} new items to user {user_id} and the total rating was {reward_sum}")
         self.model.train(True)
         return reward_sum
