@@ -13,6 +13,7 @@ import logging
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from mingpt.rev_utils import read_data
 
 logger = logging.getLogger(__name__)
 
@@ -266,31 +267,61 @@ class GPT(nn.Module):
 
         # print(f"\nposition_embeddings of size: {position_embeddings.size()} looks like: {position_embeddings}\n")
 
+        print("hi")
         x = self.drop(token_embeddings + position_embeddings)
         x = self.blocks(x)
-        x = self.ln_f(x)
-        logits = self.head(x)
+        x = self.ln_f(x)  # all size (64, 90, 128)
+        logits = self.head(x)  # now becomes size (64, 90, 273)
 
         # print(f"logits shape before resize: {logits.shape}") # torch.Size([64, 90, 273])
         if actions is not None:
-            logits = logits[:, 1::3, :]  # only keep predictions from state_embeddings because this is what we feed to begin
+            # The prediction head corresponding to the input token 'st' is trained to predict 'at'
+            logits = logits[:, 1::3, :]
             # print(f"logits shape after resize:\n{logits.shape}\n") ([128, 30, 273])
         elif actions is None:
             logits = logits[:, 1:, :]
 
         # if we are given some desired targets also calculate the loss
         loss = None
-        # print(f"targets.view(-1) is {targets.view(-1).shape}")
-        if targets is not None:
-            # print(f"targets :\n{targets.shape}\n") # ([128, 30, 1])
-            print("he")
-            print(logits.view(-1, logits.size(-1)).shape)
-            print(targets.view(-1).shape)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))  # CE(
 
-        logits_sample = logits[:, -1, :]
-        probs = F.softmax(logits_sample, dim=-1)
-        ix = torch.multinomial(probs, num_samples=1)
+        # An entire batch of raw logits can be fed into cross entropy function
+        if targets is not None:
+            # Make it easier to understand dims for cross-entropy
+            input = logits.permute(0, 2, 1) # ([64, 273, 30])
+            target = targets.view(targets.size(0), -1) # ([64, 30])
+            loss = F.cross_entropy(input, target)
+
+            """
+            # Rough but can I compare to complete matrix here? Just to give idea
+            eval_states, eval_actions, eval_rewards, _, _, eval_timesteps, eval_terminal_indices = read_data(
+                'data/goodreads_eval_modified.tsv')
+            print("user_id is following")
+            curr_user_id = int(states[-1][-1].squeeze(0).item())
+            print(curr_user_id)
+            
+
+            # Before, we got the prediction based on final timestep - logits[:, -1, :]
+            # Now, we just want final batch, for *each* timestep, not just for the last - logits[-1, :, :]
+            logits_sample = logits[-1, :, :]
+            probs = F.softmax(logits_sample, dim=-1)
+            print(probs.shape)
+            ix = torch.multinomial(probs, num_samples=1)
+            print(ix.shape) # 64, 30
+            print(ix)
+            ix_list = ix.squeeze().tolist()
+            ix_list = [x + 1 for x in ix_list]
+            print(ix_list)
+
+
+            # Now get the 30 targets, one for each timestep.
+            fine_input = input[-1]
+            print(f"target shape: {target.shape}")
+            fine_target = target[-1]
+            print(fine_input.shape)
+            print(fine_target.squeeze(0))
+            """
+
+
         # print(f"ix is {ix}")
         # for i in range(states.size(0)):
         #     print(f"prediction for user {states[i][1].squeeze(0)} is {ix[i].squeeze(0) + 1}")

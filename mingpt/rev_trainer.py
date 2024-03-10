@@ -172,7 +172,7 @@ class Trainer:
 
     def get_returns(self, no_recs):
 
-        ideal_return = no_recs * 5
+        ideal_return = no_recs * 5 # condition sequence on 'command' or desired return + time horizon
         self.model.train(False)
         user_id = random.randint(1, 256)
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
