@@ -267,7 +267,6 @@ class GPT(nn.Module):
 
         # print(f"\nposition_embeddings of size: {position_embeddings.size()} looks like: {position_embeddings}\n")
 
-        print("hi")
         x = self.drop(token_embeddings + position_embeddings)
         x = self.blocks(x)
         x = self.ln_f(x)  # all size (64, 90, 128)
@@ -276,6 +275,7 @@ class GPT(nn.Module):
         # print(f"logits shape before resize: {logits.shape}") # torch.Size([64, 90, 273])
         if actions is not None:
             # The prediction head corresponding to the input token 'st' is trained to predict 'at'
+            action_logits = logits[:, 2::3, :]
             logits = logits[:, 1::3, :]
             # print(f"logits shape after resize:\n{logits.shape}\n") ([128, 30, 273])
         elif actions is None:
@@ -283,13 +283,16 @@ class GPT(nn.Module):
 
         # if we are given some desired targets also calculate the loss
         loss = None
+        action_loss = None
 
         # An entire batch of raw logits can be fed into cross entropy function
         if targets is not None:
             # Make it easier to understand dims for cross-entropy
             input = logits.permute(0, 2, 1) # ([64, 273, 30])
+            action_input = action_logits.permute(0, 2, 1)
             target = targets.view(targets.size(0), -1) # ([64, 30])
             loss = F.cross_entropy(input, target)
+            action_loss = F.cross_entropy(action_input, target)
 
             """
             # Rough but can I compare to complete matrix here? Just to give idea
@@ -326,4 +329,5 @@ class GPT(nn.Module):
         # for i in range(states.size(0)):
         #     print(f"prediction for user {states[i][1].squeeze(0)} is {ix[i].squeeze(0) + 1}")
 
-        return logits, loss
+        print(f"logits shape from end of forward is: {logits.shape}")
+        return logits, loss, action_loss

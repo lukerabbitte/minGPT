@@ -21,3 +21,8 @@
 - 18 is same as 17, but tries average building up over 30 recs rather than 10 at eval stage.
 
 - Note that 1 - 16 were all for 'reward-only' architectures. After, we try re-including rtg and seeing the difference.
+
+- `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
+  action embeddings and not state embeddings.
+- `loss_and_action_loss_plot_with_info_2.svg` shows the same, except that we only kept return-to-go embedding
+  instead of state embedding.

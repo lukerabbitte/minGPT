@@ -50,6 +50,7 @@ class Trainer:
         self.eval_dataset = eval_dataset
         self.train_losses = []
         self.test_losses = []
+        self.action_losses = []
         self.rewards_per_epoch = []
 
         # take over whatever gpus are on the system
@@ -79,6 +80,7 @@ class Trainer:
                                 num_workers=config.num_workers)
 
             losses = []
+            action_losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
 
             # Note that x,y,r are of size torch.Size([30]), or context length, and t of size ([1])
@@ -99,9 +101,11 @@ class Trainer:
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
-                    logits, loss = model(x, y, y, r, t)
+                    logits, loss, action_loss = model(x, y, y, r, t)
                     loss = loss.mean()  # collapse all losses if they are scattered on multiple gpus
                     losses.append(loss.item())
+                    action_loss = action_loss.mean()
+                    action_losses.append(action_loss.item())
 
                 if is_train:
 
@@ -134,15 +138,15 @@ class Trainer:
                     # print(f"x[-1].shape is: {x[-1].shape}")  # ([30, 1])
 
                     # lets sample
-                    # sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=10.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rewards=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
-                    # print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1]}")
-                    # print(sampled_action.shape)
-
-
+                    sampled_action = sample(model, x[-1].unsqueeze(0), 1, temperature=1.0, sample=True, top_k=None, actions=y[-1].unsqueeze(0), rtgs=r[-1].unsqueeze(0), timesteps=t[-1].unsqueeze(0))
+                    print(f"sampled_action was: {sampled_action.squeeze(0).squeeze(0) + 1} for user: {x[-1][1].item()}")
+                    print(sampled_action.shape)
 
             if is_train:
                 self.train_losses.append(float(np.mean(losses)))
                 print(f"train_loss is: {float(np.mean(losses))}")
+                self.action_losses.append(float(np.mean(action_losses)))
+                print(f"action_loss is: {float(np.mean(action_losses))}")
 
             if not is_train:
                 test_loss = float(np.mean(losses))
@@ -162,17 +166,18 @@ class Trainer:
 
             # supports early stopping based on the test loss, or just save always if no test set is provided
             # good_model = self.test_dataset is None or test_loss < best_loss
-            #  if self.config.ckpt_path is not None and good_model:
+            # if self.config.ckpt_path is not None and good_model:
             #     best_loss = test_loss
-            #     self.save_checkpoint()
+            self.save_checkpoint()
 
-            self.rewards_per_epoch.append(self.get_returns(1))
+            # reward_per_epoch = self.get_returns(5)
+            # self.rewards_per_epoch.append(reward_per_epoch)
 
-        return self.train_losses, self.test_losses, self.rewards_per_epoch
+        return self.train_losses, self.action_losses, self.test_losses, self.rewards_per_epoch
 
     def get_returns(self, no_recs):
 
-        ideal_return = no_recs * 5 # condition sequence on 'command' or desired return + time horizon
+        ideal_return = no_recs * 5  # condition sequence on 'command' or desired return + time horizon
         self.model.train(False)
         user_id = random.randint(1, 256)
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
@@ -185,8 +190,10 @@ class Trainer:
             state = state.unsqueeze(0).unsqueeze(0).to(self.device)
             all_states = state if i == 0 else torch.cat([all_states, state], dim=0)
 
+            print(f"all_states.shape is {all_states.shape}")
+
             # Handle initial case where state is just one state and actions are none
-            sampled_action = sample(self.model, all_states.unsqueeze(0), 1, temperature=1.0, sample=True,
+            sampled_action = sample(self.model, all_states, 1, temperature=1.0, sample=True,
                                     actions=None if i == 0 else torch.tensor(actions, dtype=torch.long).to(
                                         self.device).unsqueeze(
                                         1).unsqueeze(0),
@@ -207,7 +214,6 @@ class Trainer:
             reward_sum += reward
             actions += [sampled_action]
             rtgs += [rtgs[-1] - reward]
-
 
         print(f"Just recommended {no_recs} new items to user {user_id} and the total rating was {reward_sum}")
         self.model.train(True)
