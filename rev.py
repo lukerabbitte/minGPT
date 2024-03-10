@@ -131,7 +131,8 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed, model_type=model_type,
                       ckpt_path="checkpoints/model_checkpoint.pth",
-                      max_timestep=max(train_timesteps))
+                      max_timestep=max(train_timesteps),
+                      num_users=20)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, action_losses, test_losses, average_rewards_per_epoch = trainer.train()
 
