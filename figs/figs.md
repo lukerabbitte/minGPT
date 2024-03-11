@@ -23,6 +23,11 @@
 - Note that 1 - 16 were all for 'reward-only' architectures. After, we try re-including rtg and seeing the difference.
 
 - 21 is the first time I feel like get_returns is properly working, and the code is better formatted too.
+- 22 was a repeat of 21
+- 23 was same as 22 with more epochs
+- 24 was the same with just 10 epochs - bad results though
+- 25 is back to 30 epochs - but with 30 recs per trajectory
+- 26 is same as 25 but user id (state) kept constant
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

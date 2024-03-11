@@ -130,7 +130,7 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps),
                       num_users=256,
-                      num_recs=50)
+                      num_recs=30)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
@@ -138,7 +138,7 @@ plot_loss(train_losses, None, context_length, batch_size,
           mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
 
 plot_reward(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
-              'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs, figs_dir='figs')
+              'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
 
 print(f"train_losses: {train_losses}")
 print(f"rewards_per_epoch: {rewards_per_epoch}")

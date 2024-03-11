@@ -91,9 +91,17 @@ def plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoc
     plt.plot(range(1, num_recs + 1), rewards_over_trajectory, label=f'Rewards for User {user_id} (Epoch {epoch})',
              color='blue')
 
+    # Centering x-axis at 0
+    max_step = len(rewards_over_trajectory)
+    plt.xlim(0, max_step * 1.1)
+
+    # Centering y-axis at 0
+    max_abs_reward = np.max(np.abs(rewards_over_trajectory))
+    plt.ylim(0, max_abs_reward * 1.1)
+
     plt.xlabel('Recommendation Number', fontweight='bold', fontsize=14)
     plt.ylabel('Reward', fontweight='bold', fontsize=14)
-    plt.title(f'Reward Over Trajectory for Randomly-Selected User {user_id} in Epoch {epoch}/{max_epochs}', fontweight='bold', fontsize=16)
+    plt.title(f'Reward Over Trajectory for Randomly-Selected User {user_id} in Epoch {epoch} out of {max_epochs}', fontweight='bold', fontsize=16)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.legend(fontsize=12)
@@ -101,7 +109,7 @@ def plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoc
 
     if figs_dir:
         os.makedirs(figs_dir, exist_ok=True)
-        base_filename = f'rewards_per_trajectory_user_{user_id}_epoch_{epoch}/{max_epochs}'
+        base_filename = f'rewards_per_trajectory_epoch_{epoch}_user_{user_id}_out_of_{max_epochs}'
         new_filename = get_next_filename(figs_dir, base_filename)
         plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
 
@@ -114,6 +122,14 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
     # Plot average rewards per epoch
     plt.plot(range(1, len(rewards_per_epoch) + 1), rewards_per_epoch, label='Average Rewards per Epoch (Different User Every Time)', color='green')
 
+    # Calculate the line of best fit
+    x = np.arange(1, len(rewards_per_epoch) + 1)
+    coeffs = np.polyfit(x, rewards_per_epoch, 1)
+    line_of_best_fit = np.poly1d(coeffs)
+    plt.plot(x, line_of_best_fit(x), color='orange', linestyle='--', label='Line of Best Fit')
+
+    plt.axhline(y=180, color='blue', linestyle='--', label='Baseline (Random Choice)')
+
     plt.xlabel('Epoch', fontweight='bold', fontsize=14)
     plt.ylabel('Average Reward', fontweight='bold', fontsize=14)
     plt.title(f'Average Rewards Over {num_recs} New Recommendations Per Epoch', fontweight='bold', fontsize=16)
@@ -122,6 +138,14 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
     plt.legend(fontsize=12)
     plt.grid(True)
 
+    # Centering x-axis at 0
+    max_epoch = len(rewards_per_epoch)
+    plt.xlim(0, max_epoch * 1.1)
+
+    # Centering y-axis at 0
+    max_abs_reward = np.max(np.abs(rewards_per_epoch))
+    plt.ylim(0, max_abs_reward * 1.1)
+
     # Information box
     info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNumber of Users in Dataset: {num_users}\nNumber of recommendations given in series during evaluation {num_recs}"
     plt.text(0.02, 0.85, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='top',
@@ -129,7 +153,7 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
 
     if figs_dir:
         os.makedirs(figs_dir, exist_ok=True)
-        base_filename = 'rewards_plot_with_info'
+        base_filename = 'rewards_plot_with_info_24'
         new_filename = get_next_filename(figs_dir, base_filename)
         plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
 
@@ -146,11 +170,22 @@ def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_
 
     plt.xlabel('Epoch', fontweight='bold', fontsize=14)
     plt.ylabel('Loss', fontweight='bold', fontsize=14)
-    plt.title('Training and Test Loss Over Epochs', fontweight='bold', fontsize=16)
+    if test_losses is not None:
+        plt.title('Training and Test Loss Over Epochs', fontweight='bold', fontsize=16)
+    else:
+        plt.title('Training Loss Over Epochs', fontweight='bold', fontsize=16)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.legend(fontsize=12)
     plt.grid(True)
+
+    # Centering x-axis at 0
+    max_epoch = len(train_losses)
+    plt.xlim(0, max_epoch * 1.1)
+
+    # Centering y-axis at 0
+    max_abs_reward = np.max(np.abs(train_losses))
+    plt.ylim(0, max_abs_reward * 1.1)
 
     # Information box
     info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nTest Dataset Name: {filename_test_dataset}\nTest Dataset Size: {len_test_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}"
