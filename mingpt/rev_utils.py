@@ -34,10 +34,10 @@ def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
     block_size = model.get_block_size()
     model.eval()
     for k in range(steps):
-        x_cond = x if x.size(1) <= block_size else x[:, -block_size:] # crop context if needed
+        x_cond = x if x.size(1) <= block_size else x[:, -block_size//3:, :] # crop context if needed
         if y is not None:
-            y = y if y.size(1) <= block_size//3 else y[:, -block_size//3:]
-        r = r if r.size(1) <= block_size//3 else r[:, -block_size//3:]
+            y = y if y.size(1) <= block_size//3 else y[:, -block_size//3:, :]
+        r = r if r.size(1) <= block_size//3 else r[:, -block_size//3:, :]
         logits, _, _ = model(x_cond, actions=y, targets=None, returns_to_go=r, timesteps=t)
 
         # pluck the logits at the final step and scale by temperature
@@ -83,6 +83,32 @@ def get_next_filename(figs_dir, base_filename):
             return new_filename
         i += 1
 
+def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, n_embd,
+              filename_train_dataset, len_train_dataset, learning_rate, lr_decay, num_users, num_recs, figs_dir='figs'):
+    plt.rcParams.update({'font.family': 'monospace'})
+    plt.figure(figsize=(12, 8))
+
+    # Plot average rewards per epoch
+    plt.plot(range(1, len(rewards_per_epoch) + 1), rewards_per_epoch, label='Average Rewards per Epoch (Different User Every Time)', color='green')
+
+    plt.xlabel('Epoch', fontweight='bold', fontsize=14)
+    plt.ylabel('Average Reward', fontweight='bold', fontsize=14)
+    plt.title(f'Average Rewards Over {num_recs} New Recommendations Per Epoch', fontweight='bold', fontsize=16)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=12)
+    plt.grid(True)
+
+    # Information box
+    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNumber of Users in Dataset: {num_users}\nNumber of recommendations given in series during evaluation {num_recs}"
+    plt.text(0.02, 0.85, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='top',
+             bbox=dict(facecolor='white', alpha=0.8))
+
+    if figs_dir:
+        os.makedirs(figs_dir, exist_ok=True)
+        base_filename = 'rewards_plot_with_info'
+        new_filename = get_next_filename(figs_dir, base_filename)
+        plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
 
 def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_head, n_embd,
               filename_train_dataset, len_train_dataset, filename_test_dataset, len_test_dataset, learning_rate, lr_decay, figs_dir='figs'):

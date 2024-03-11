@@ -225,11 +225,9 @@ class GPT(nn.Module):
             action_embeddings = self.action_embedding(
                 actions.type(torch.long).squeeze(-1)
             )  # (batch, block_size, n_embd)
-            print(f"action_embeddings basic {action_embeddings.shape}")
             # actions will only have context of (context_length - 1) if there are no targets given
             # print(f"action_embeddings before of size: {action_embeddings.shape} and looks like: action_embeddings")
             action_embeddings = action_embeddings[:, -states.shape[1] + int(targets is None):, :]
-            print(f"action_embeddings rejigged {action_embeddings.shape}")
             # print(f"action_embeddings after of size: {action_embeddings.shape} and looks like: action_embeddings")
 
             # print(f"return_to_go_embeddings shape: {return_to_go_embeddings.shape}")
@@ -244,9 +242,19 @@ class GPT(nn.Module):
                 device=state_embeddings.device
             )
 
+            print(f"states.shape[0] is {states.shape[0]}")
+            print(f"middle_shape is {middle_shape}")
+            print(f"state_embeddings.shape is {state_embeddings.shape}")
+            print(f"action_embeddings.shape is {action_embeddings.shape}")
+            print(f"return_to_go_embeddings.shape is {return_to_go_embeddings.shape}")
+            print(f"token_embeddings.shape is {token_embeddings.shape}")
+
             token_embeddings[:, ::3, :] = return_to_go_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
             token_embeddings[:, 2::3, :] = action_embeddings
+
+            print(f"token_embeddings[0].shape is {token_embeddings[0].shape}")
+
         elif actions is None:  # only happens at very first timestep of evaluation
             return_to_go_embeddings = self.return_to_go_embedding(returns_to_go.type(torch.float32))
             middle_shape = states.shape[1] * 2

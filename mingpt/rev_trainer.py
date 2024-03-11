@@ -18,6 +18,10 @@ import random
 
 logger = logging.getLogger(__name__)
 
+class MatchingActionNotFoundError(Exception):
+    def __init__(self, message="Matching action not found in eval_actions."):
+        self.message = message
+        super().__init__(self.message)
 
 class TrainerConfig:
     # optimization parameters
@@ -169,14 +173,14 @@ class Trainer:
             #     best_loss = test_loss
             self.save_checkpoint()
 
-            reward_per_epoch = self.get_returns(5, self.config.num_users)
+            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users)
             self.rewards_per_epoch.append(reward_per_epoch)
 
         return self.train_losses, self.action_losses, self.test_losses, self.rewards_per_epoch
 
-    def get_returns(self, no_recs, num_users):
+    def get_returns(self, num_recs, num_users):
 
-        ideal_return = no_recs * 5  # condition sequence on 'command' or desired return + time horizon
+        ideal_return = num_recs * 5  # condition sequence on 'command' or desired return + time horizon
         self.model.train(False)
         user_id = random.randint(1, num_users)
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
@@ -184,7 +188,7 @@ class Trainer:
         reward_sum = 0
         actions = []
 
-        for i in range(no_recs):
+        for i in range(num_recs):
             state = eval_states[i]  # shape (b, t)
             state = state.unsqueeze(0).unsqueeze(0).to(self.device)
 
@@ -200,7 +204,11 @@ class Trainer:
             action = sampled_action.cpu().numpy()[0, -1]
             actions.append(action)
             action += 1
-            action_index = np.where(eval_actions == action)[0][0]
+            action_indices = np.where(eval_actions == action)[0]
+            if len(action_indices) > 0:
+                action_index = action_indices[0]
+            else:
+                raise MatchingActionNotFoundError()
             reward = eval_rewards[action_index]
             reward_sum += reward.item()
             rtgs += [rtgs[-1] - reward.item()]
@@ -211,6 +219,6 @@ class Trainer:
             print(f"all_actions shape just before sample {all_actions.shape}")
             sampled_action = sample(self.model, all_states, all_actions, all_rtgs, all_timesteps, 1, temperature=1.0, sample=True)
 
-        print(f"Just recommended {no_recs} new items to user {user_id} and the total rating was {reward_sum}")
+        print(f"Just recommended {num_recs} new items to user {user_id} and the total rating was {reward_sum}")
         self.model.train(True)
         return reward_sum

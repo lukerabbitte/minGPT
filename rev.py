@@ -16,6 +16,7 @@ from mingpt.rev_trainer import Trainer, TrainerConfig
 from mingpt.rev_utils import read_data
 import argparse
 from mingpt.rev_utils import plot_loss
+from mingpt.rev_utils import plot_reward
 
 seed = 123
 epochs = 10
@@ -128,13 +129,17 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       num_workers=4, seed=seed, model_type=model_type,
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps),
-                      num_users=20)
+                      num_users=20,
+                      num_recs=50)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
-train_losses, action_losses, test_losses, average_rewards_per_epoch = trainer.train()
+train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
-# plot_loss(train_losses, None, context_length, batch_size,
-#           mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+plot_loss(train_losses, None, context_length, batch_size,
+          mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+
+plot_reward(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
+              'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs, figs_dir='figs')
 
 print(f"train_losses: {train_losses}")
-print(f"average_rewards_per_epoch: {average_rewards_per_epoch}")
+print(f"rewards_per_epoch: {rewards_per_epoch}")
 # print(f"test_losses: {test_losses}")
