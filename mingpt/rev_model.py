@@ -214,7 +214,8 @@ class GPT(nn.Module):
         # print(f"\nstates of size: {states.size()} looks like:\n {states}\n")
         # print(f"\ntargets of size: {targets.size()} looks like:\n {targets}\n")
 
-        # state before embedding was size ([128, 30, 1]), state after should be ([128, 30, 128])
+        # state before embedding was size ([64, 30, 1]), state after should be ([64, 30, 128])
+        # print(f"state before embedding: {states}")
         state_embeddings = self.state_embedding(states.type(torch.float32).contiguous())  # (batch, n_embd)
         state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.config.n_embd)
         # print(f"state_embeddings shape: {state_embeddings.shape}")
@@ -224,32 +225,35 @@ class GPT(nn.Module):
             action_embeddings = self.action_embedding(
                 actions.type(torch.long).squeeze(-1)
             )  # (batch, block_size, n_embd)
+            print(f"action_embeddings basic {action_embeddings.shape}")
             # actions will only have context of (context_length - 1) if there are no targets given
             # print(f"action_embeddings before of size: {action_embeddings.shape} and looks like: action_embeddings")
             action_embeddings = action_embeddings[:, -states.shape[1] + int(targets is None):, :]
+            print(f"action_embeddings rejigged {action_embeddings.shape}")
             # print(f"action_embeddings after of size: {action_embeddings.shape} and looks like: action_embeddings")
 
             # print(f"return_to_go_embeddings shape: {return_to_go_embeddings.shape}")
             # print(f"action_embeddings shape: {action_embeddings.shape}")
 
+            middle_shape = states.shape[1] * 3 - int(targets is None)
+
             # Create the shape of our threefold token embeddings
             token_embeddings = torch.zeros(
-                (states.shape[0], states.shape[1] * 3 - int(targets is None), self.config.n_embd),
+                (states.shape[0], middle_shape, self.config.n_embd),
                 dtype=torch.float32,
                 device=state_embeddings.device
             )
-            # print(f"token_embeddings.shape: {token_embeddings.shape}")
 
             token_embeddings[:, ::3, :] = return_to_go_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
             token_embeddings[:, 2::3, :] = action_embeddings
         elif actions is None:  # only happens at very first timestep of evaluation
             return_to_go_embeddings = self.return_to_go_embedding(returns_to_go.type(torch.float32))
-            token_embeddings = torch.zeros((states.shape[0], states.shape[1] * 2, self.config.n_embd),
+            middle_shape = states.shape[1] * 2
+            token_embeddings = torch.zeros((states.shape[0], middle_shape, self.config.n_embd),
                                            dtype=torch.float32, device=state_embeddings.device)
             token_embeddings[:, ::2, :] = return_to_go_embeddings  # really just [:,0,:]
             token_embeddings[:, 1::2, :] = state_embeddings  # really just [:,1,:]
-            token_embeddings = state_embeddings
 
         # do position embeddings - global_pos_emb of size ([1, max(timestep)+1, n_embd]) or ([1, 104, 128])
         batch_size = states.shape[0]
@@ -265,14 +269,11 @@ class GPT(nn.Module):
             )
         ) + self.pos_emb[:, :token_embeddings.shape[1], :]
 
-        # print(f"\nposition_embeddings of size: {position_embeddings.size()} looks like: {position_embeddings}\n")
-
         x = self.drop(token_embeddings + position_embeddings)
         x = self.blocks(x)
         x = self.ln_f(x)  # all size (64, 90, 128)
         logits = self.head(x)  # now becomes size (64, 90, 273)
 
-        # print(f"logits shape before resize: {logits.shape}") # torch.Size([64, 90, 273])
         if actions is not None:
             # The prediction head corresponding to the input token 'st' is trained to predict 'at'
             action_logits = logits[:, 2::3, :]
@@ -329,5 +330,4 @@ class GPT(nn.Module):
         # for i in range(states.size(0)):
         #     print(f"prediction for user {states[i][1].squeeze(0)} is {ix[i].squeeze(0) + 1}")
 
-        print(f"logits shape from end of forward is: {logits.shape}")
         return logits, loss, action_loss

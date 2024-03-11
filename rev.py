@@ -76,32 +76,28 @@ class EvalDataset(Dataset):
         self.block_size = block_size
         self.vocab_size = max(actions) + 1
 
+        # Get indices denoting start of each user's interaction trajectory
+        self.start_indices = self.terminal_indices
+        self.start_indices = np.insert(self.start_indices, 0, 0)
+
     def __len__(self):
         return len(self.states)
 
-    def __getitem__(self, idx):
-        start_indices = [0]
-        start_indices = start_indices + self.terminal_indices[:-1]
+    # Returns user data from a complete matrix of user interactions where they have rated every item, for eval purposes
+    # Also note that each of our terminal indices will be one index higher than the last entry for a user.
+    # This is in keeping with Python's upper bound exclusive behaviour.
+    def __getitem__(self, user_id):
+        print(f"user_id passed to EvaluationDataset getitem is: {user_id}")
+        idx = self.start_indices[user_id - 1]
+        done_idx = None if user_id == self.start_indices.size else self.terminal_indices[
+            user_id - 1]  # avoid array out of limit bug for last user
 
-        for i in self.terminal_indices:
-            if i > idx:  # find the first terminal index greater than idx
-                done_idx = i
-                break
-
-        lookup = self.terminal_indices.index(done_idx)
-        if len(start_indices) == len(self.terminal_indices):
-            start_idx = start_indices[lookup]
-
-        # Squeeze these tensors to give dimension for batch size expected by most APIs (b,t)
-        # Notice that original paper didn't unsqueeze these until later
-        states = torch.tensor(np.array(self.states[start_idx:done_idx]), dtype=torch.float32).unsqueeze(1)
-        actions = torch.tensor(self.actions[start_idx:done_idx], dtype=torch.long).unsqueeze(1)
-        rewards = torch.tensor(self.rewards[start_idx:done_idx], dtype=torch.float32).unsqueeze(1)
+        # Return tensors of (episode_length, 1)
+        states = torch.tensor(np.array(self.states[idx:done_idx]), dtype=torch.float32).unsqueeze(1)
+        actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1)
+        rewards = torch.tensor(self.rewards[idx:done_idx], dtype=torch.float32).unsqueeze(1)
         timesteps = torch.tensor(self.timesteps[idx:idx + 1], dtype=torch.int64).unsqueeze(1)
 
-        # print(f"states.shape: {states.shape}")
-        # print(f"timesteps.shape: {timesteps.shape}")
-        # print(f"idx: {idx} and timesteps: {timesteps}")
         return states, actions, rewards, timesteps
 
 # Read in train data and create dataset

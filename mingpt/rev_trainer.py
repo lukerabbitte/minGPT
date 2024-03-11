@@ -146,7 +146,7 @@ class Trainer:
                 self.train_losses.append(float(np.mean(losses)))
                 print(f"train_loss is: {float(np.mean(losses))}")
                 self.action_losses.append(float(np.mean(action_losses)))
-                print(f"action_loss is: {float(np.mean(action_losses))}")
+                # print(f"action_loss is: {float(np.mean(action_losses))}")
 
             if not is_train:
                 test_loss = float(np.mean(losses))
@@ -181,38 +181,35 @@ class Trainer:
         user_id = random.randint(1, num_users)
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
         rtgs = [ideal_return]
-        actions = []
         reward_sum = 0
+        actions = []
 
         for i in range(no_recs):
             state = eval_states[i]  # shape (b, t)
             state = state.unsqueeze(0).unsqueeze(0).to(self.device)
 
+            # def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
             # First sample with only state to kick us off
             if i == 0:
-                sampled_action = sample(self.model, state, 1, temperature=1.0, sample=True, actions=None,
-                                        rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(
-                                            0).unsqueeze(-1),
-                                        timesteps=torch.zeros((1, 1, 1), dtype=torch.int64).to(self.device))
+                first_actions = None
+                first_rtgs = torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(-1)
+                first_timesteps = torch.ones((1, 1, 1), dtype=torch.int64).to(self.device)
+                sampled_action = sample(self.model, state, first_actions, first_rtgs, first_timesteps, 1, temperature=1.0, sample=True)
                 all_states = state
 
             action = sampled_action.cpu().numpy()[0, -1]
-            actions += [sampled_action]
+            actions.append(action)
             action += 1
             action_index = np.where(eval_actions == action)[0][0]
             reward = eval_rewards[action_index]
-            reward_sum += reward
-            rtgs += [rtgs[-1] - reward]
-            all_states = torch.cat([all_states, state], dim=0)
-
-            sampled_action = sample(self.model, all_states, 1, temperature=1.0, sample=True,
-                                    actions=torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(
-                                        1).unsqueeze(0),
-                                    rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(
-                                        -1),
-                                    timesteps=(min(i, self.config.max_timestep) * torch.ones((1, 1, 1),
-                                                                                             dtype=torch.int64).to(
-                                        self.device)))
+            reward_sum += reward.item()
+            rtgs += [rtgs[-1] - reward.item()]
+            all_states = torch.cat([all_states, state], dim=1)
+            all_actions = torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(1).unsqueeze(0)
+            all_rtgs = torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(-1)
+            all_timesteps = (min(i+1, self.config.max_timestep) * torch.ones((1, 1, 1), dtype=torch.int64).to(self.device))
+            print(f"all_actions shape just before sample {all_actions.shape}")
+            sampled_action = sample(self.model, all_states, all_actions, all_rtgs, all_timesteps, 1, temperature=1.0, sample=True)
 
         print(f"Just recommended {no_recs} new items to user {user_id} and the total rating was {reward_sum}")
         self.model.train(True)
