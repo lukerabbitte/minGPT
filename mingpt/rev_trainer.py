@@ -14,6 +14,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data.dataloader import DataLoader
 from mingpt.rev_utils import sample
+from mingpt.rev_utils import plot_reward_over_trajectory
 import random
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,6 @@ class TrainerConfig:
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-
 
 class Trainer:
 
@@ -173,12 +173,12 @@ class Trainer:
             #     best_loss = test_loss
             self.save_checkpoint()
 
-            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users)
+            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, epoch, config.max_epochs)
             self.rewards_per_epoch.append(reward_per_epoch)
 
         return self.train_losses, self.action_losses, self.test_losses, self.rewards_per_epoch
 
-    def get_returns(self, num_recs, num_users):
+    def get_returns(self, num_recs, num_users, epoch, max_epochs):
 
         ideal_return = num_recs * 5  # condition sequence on 'command' or desired return + time horizon
         self.model.train(False)
@@ -186,6 +186,7 @@ class Trainer:
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
         rtgs = [ideal_return]
         reward_sum = 0
+        rewards_over_trajectory = []
         actions = []
 
         for i in range(num_recs):
@@ -203,14 +204,16 @@ class Trainer:
 
             action = sampled_action.cpu().numpy()[0, -1]
             actions.append(action)
-            action += 1
             action_indices = np.where(eval_actions == action)[0]
+            print(f"Action {action} as according to original dataset is actually action+1: {action + 1}")
             if len(action_indices) > 0:
                 action_index = action_indices[0]
             else:
+                print(f"Action {action} was not found for user {eval_states[0]}")
                 raise MatchingActionNotFoundError()
             reward = eval_rewards[action_index]
             reward_sum += reward.item()
+            rewards_over_trajectory.append(reward.item())
             rtgs += [rtgs[-1] - reward.item()]
             all_states = torch.cat([all_states, state], dim=1)
             all_actions = torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(1).unsqueeze(0)
@@ -221,4 +224,7 @@ class Trainer:
 
         print(f"Just recommended {num_recs} new items to user {user_id} and the total rating was {reward_sum}")
         self.model.train(True)
+
+        plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoch, max_epochs)
+
         return reward_sum

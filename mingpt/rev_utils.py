@@ -83,6 +83,29 @@ def get_next_filename(figs_dir, base_filename):
             return new_filename
         i += 1
 
+def plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoch, max_epochs, figs_dir='figs/rewards_over_trajectory'):
+    plt.rcParams.update({'font.family': 'monospace'})
+    plt.figure(figsize=(12, 8))
+
+    # Plot rewards over trajectory
+    plt.plot(range(1, num_recs + 1), rewards_over_trajectory, label=f'Rewards for User {user_id} (Epoch {epoch})',
+             color='blue')
+
+    plt.xlabel('Recommendation Number', fontweight='bold', fontsize=14)
+    plt.ylabel('Reward', fontweight='bold', fontsize=14)
+    plt.title(f'Reward Over Trajectory for Randomly-Selected User {user_id} in Epoch {epoch}/{max_epochs}', fontweight='bold', fontsize=16)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=12)
+    plt.grid(True)
+
+    if figs_dir:
+        os.makedirs(figs_dir, exist_ok=True)
+        base_filename = f'rewards_per_trajectory_user_{user_id}_epoch_{epoch}/{max_epochs}'
+        new_filename = get_next_filename(figs_dir, base_filename)
+        plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
+
+
 def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, n_embd,
               filename_train_dataset, len_train_dataset, learning_rate, lr_decay, num_users, num_recs, figs_dir='figs'):
     plt.rcParams.update({'font.family': 'monospace'})
