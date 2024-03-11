@@ -34,7 +34,7 @@ def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
     block_size = model.get_block_size()
     model.eval()
     for k in range(steps):
-        x_cond = x if x.size(1) <= block_size else x[:, -block_size//3:, :] # crop context if needed
+        x_cond = x if x.size(1) <= block_size//3 else x[:, -block_size//3:, :] # crop context if needed
         if y is not None:
             y = y if y.size(1) <= block_size//3 else y[:, -block_size//3:, :]
         r = r if r.size(1) <= block_size//3 else r[:, -block_size//3:, :]

@@ -19,7 +19,7 @@ from mingpt.rev_utils import plot_loss
 from mingpt.rev_utils import plot_reward
 
 seed = 123
-epochs = 10
+epochs = 30
 batch_size = 64
 context_length = 30
 model_type = 'reward_conditioned'
@@ -103,7 +103,7 @@ class EvalDataset(Dataset):
 
 # Read in train data and create dataset
 train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices = read_data(
-    'data/dummy_50.tsv')
+    'data/goodreads_eval_modified_20pc.tsv')
 train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
@@ -129,7 +129,7 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       num_workers=4, seed=seed, model_type=model_type,
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps),
-                      num_users=20,
+                      num_users=256,
                       num_recs=50)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()

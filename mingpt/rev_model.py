@@ -242,13 +242,6 @@ class GPT(nn.Module):
                 device=state_embeddings.device
             )
 
-            print(f"states.shape[0] is {states.shape[0]}")
-            print(f"middle_shape is {middle_shape}")
-            print(f"state_embeddings.shape is {state_embeddings.shape}")
-            print(f"action_embeddings.shape is {action_embeddings.shape}")
-            print(f"return_to_go_embeddings.shape is {return_to_go_embeddings.shape}")
-            print(f"token_embeddings.shape is {token_embeddings.shape}")
-
             token_embeddings[:, ::3, :] = return_to_go_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
             token_embeddings[:, 2::3, :] = action_embeddings
