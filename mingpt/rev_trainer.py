@@ -173,6 +173,7 @@ class Trainer:
             #     best_loss = test_loss
             self.save_checkpoint()
 
+            # Evaluate by passing in the number of new recs we want to generate
             reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, epoch, config.max_epochs)
             self.rewards_per_epoch.append(reward_per_epoch)
 
@@ -182,7 +183,8 @@ class Trainer:
 
         ideal_return = num_recs * 5  # condition sequence on 'command' or desired return + time horizon
         self.model.train(False)
-        user_id = random.randint(1, num_users)
+        # user_id = random.randint(1, num_users)
+        user_id = 1  # let's let user_id stand in as a proxy for entire group 1
         eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
         rtgs = [ideal_return]
         reward_sum = 0
@@ -190,7 +192,7 @@ class Trainer:
         actions = []
 
         for i in range(num_recs):
-            state = eval_states[i]  # shape (b, t)
+            state = torch.tensor([1.])  # constant state
             state = state.unsqueeze(0).unsqueeze(0).to(self.device)
 
             # def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
@@ -215,7 +217,7 @@ class Trainer:
             reward_sum += reward.item()
             rewards_over_trajectory.append(reward.item())
             rtgs += [rtgs[-1] - reward.item()]
-            all_states = torch.cat([all_states, state], dim=1)
+            all_states = torch.cat([all_states, state], dim=1) # TODO try without cat
             all_actions = torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(1).unsqueeze(0)
             all_rtgs = torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(-1)
             all_timesteps = (min(i+1, self.config.max_timestep) * torch.ones((1, 1, 1), dtype=torch.int64).to(self.device))

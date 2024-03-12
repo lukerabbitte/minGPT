@@ -80,10 +80,10 @@ class CharDataset(Dataset):
 
 
 block_size = 128 # spatial extent of the model for its context
-text = open('../../stupid.txt', 'r').read() # don't worry we won't run out of file handles
+text = open('../../data/stupid.txt', 'r').read() # don't worry we won't run out of file handles
 train_dataset = CharDataset(text, block_size) # one line of poem is roughly 50 characters
 
-test_text = open('../../stupid_test.txt', 'r').read()
+test_text = open('../../data/stupid_test.txt', 'r').read()
 test_dataset = CharDataset(test_text, block_size)
 
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size,

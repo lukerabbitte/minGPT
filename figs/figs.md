@@ -27,7 +27,9 @@
 - 23 was same as 22 with more epochs
 - 24 was the same with just 10 epochs - bad results though
 - 25 is back to 30 epochs - but with 30 recs per trajectory
-- 26 is same as 25 but user id (state) kept constant
+- 26 is same as 25 but with `80pc` dataset - moar values
+- 28 we take constant state ([1.]) and always compares to user_id 1 in the complete matrix (let
+  this stand in as a sort of proxy for the whole group) num_recs.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

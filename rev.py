@@ -88,7 +88,7 @@ class EvalDataset(Dataset):
     # Also note that each of our terminal indices will be one index higher than the last entry for a user.
     # This is in keeping with Python's upper bound exclusive behaviour.
     def __getitem__(self, user_id):
-        print(f"user_id passed to EvaluationDataset getitem is: {user_id}")
+        print(f"user_id passed to EvalDataset getitem is: {user_id}")
         idx = self.start_indices[user_id - 1]
         done_idx = None if user_id == self.start_indices.size else self.terminal_indices[
             user_id - 1]  # avoid array out of limit bug for last user
@@ -103,7 +103,7 @@ class EvalDataset(Dataset):
 
 # Read in train data and create dataset
 train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices = read_data(
-    'data/goodreads_eval_modified_20pc.tsv')
+    'data/goodreads_eval_modified_20pc_constant_state.tsv')
 train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
@@ -135,11 +135,13 @@ trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
 plot_loss(train_losses, None, context_length, batch_size,
-          mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay)
+          mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay, tconf.num_users)
 
 plot_reward(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
-              'data/goodreads_eval_modified_20pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
+              'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
 
 print(f"train_losses: {train_losses}")
 print(f"rewards_per_epoch: {rewards_per_epoch}")
+print(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
+              'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
 # print(f"test_losses: {test_losses}")

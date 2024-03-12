@@ -128,7 +128,9 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
     line_of_best_fit = np.poly1d(coeffs)
     plt.plot(x, line_of_best_fit(x), color='orange', linestyle='--', label='Line of Best Fit')
 
-    plt.axhline(y=180, color='blue', linestyle='--', label='Baseline (Random Choice)')
+    baseline = (num_recs * 0.65 * 5) + (num_recs * 0.35 * 1)  # 65% of ratings are 5 star
+
+    plt.axhline(y=baseline, color='blue', linestyle='--', label='Baseline (Random Choice)')
 
     plt.xlabel('Epoch', fontweight='bold', fontsize=14)
     plt.ylabel('Average Reward', fontweight='bold', fontsize=14)
@@ -158,7 +160,7 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
         plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
 
 def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_head, n_embd,
-              filename_train_dataset, len_train_dataset, filename_test_dataset, len_test_dataset, learning_rate, lr_decay, figs_dir='figs'):
+              filename_train_dataset, len_train_dataset, filename_test_dataset, len_test_dataset, learning_rate, lr_decay, num_users, figs_dir='figs'):
     plt.rcParams.update({'font.family': 'monospace'})
     plt.figure(figsize=(12, 8))
 
@@ -188,7 +190,7 @@ def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_
     plt.ylim(0, max_abs_reward * 1.1)
 
     # Information box
-    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nTest Dataset Name: {filename_test_dataset}\nTest Dataset Size: {len_test_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}"
+    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nTest Dataset Name: {filename_test_dataset}\nTest Dataset Size: {len_test_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNo. Users in Dataset: {num_users}"
     plt.text(0.02, 0.85, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='top',
              bbox=dict(facecolor='white', alpha=0.8))
 
