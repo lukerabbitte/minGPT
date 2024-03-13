@@ -39,7 +39,12 @@
 - 34 is same as 33 but with actual data.
 - 35 is same as 34 but with more epochs (50 instead of 30 - hoping to see less fluctuation over time)
   also now saving checkpoints per epoch.
-- 36 is same as 34 but back to (1, 2, 3, 4, 5) datasets.
+- 36 is the same as 35 but only does 1 new recommendation per epoch
+- 37 is same as 35 but back to (1, 2, 3, 4, 5) datasets.
+- 38 tried but with 80pc rather than 20pc dataset.
+- 39 is same as 37 but uses tracking sampler thing.
+- 40 is same as 36 where we only have 1 new recommendation per epoch,
+  but it's trained on 80pc dataset.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

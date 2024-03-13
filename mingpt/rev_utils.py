@@ -31,7 +31,8 @@ def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
     Note model signature is the following:
     def forward(self, states, actions, targets=None, returns_to_go=None, timesteps=None):
     """
-    block_size = model.get_block_size()
+    # block_size = model.get_block_size()
+    block_size = 90
     model.eval()
     for k in range(steps):
         x_cond = x if x.size(1) <= block_size//3 else x[:, -block_size//3:, :] # crop context if needed
@@ -120,7 +121,7 @@ def plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoc
 
 
 def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, n_embd,
-              filename_train_dataset, len_train_dataset, learning_rate, lr_decay, num_users, num_recs, figs_dir='figs'):
+              filename_train_dataset, len_train_dataset, learning_rate, lr_decay, num_users, num_recs, ratings_at_extreme, figs_dir='figs'):
     plt.rcParams.update({'font.family': 'monospace'})
     plt.figure(figsize=(12, 8))
 
@@ -133,7 +134,10 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
     line_of_best_fit = np.poly1d(coeffs)
     plt.plot(x, line_of_best_fit(x), color='orange', linestyle='--', label='Line of Best Fit')
 
-    baseline = (num_recs * 0.65 * 5) + (num_recs * 0.35 * 1)  # 65% of ratings are 5 star
+    if ratings_at_extreme:
+        baseline = (num_recs * 0.65 * 5) + (num_recs * 0.35 * 1)  # 65% of ratings are 5 star
+    else:
+        baseline = (num_recs * 0.35 * 5) + (num_recs * 0.31 * 4) + (num_recs * 0.20 * 3) + (num_recs * 0.10 * 2) + (num_recs * 0.04 * 1)  # 65% of ratings are 5 star
 
     plt.axhline(y=baseline, color='blue', linestyle='--', label='Baseline (Random Choice)')
 

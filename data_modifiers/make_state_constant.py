@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Read the TSV file
-df = pd.read_csv("../data/goodreads_eval_modified_20pc.tsv", sep="\t")
+df = pd.read_csv("../data/goodreads_eval_80pc.tsv", sep="\t")
 
 # Display the first few rows of the dataframe
 print(df.head())
@@ -10,4 +10,4 @@ print(df.head())
 df['user_id'] = 1
 
 # Save the modified dataset
-df.to_csv("../data/goodreads_eval_modified_20pc_constant_state.tsv", sep="\t", index=False)
+df.to_csv("../data/goodreads_eval_80pc_constant_state.tsv", sep="\t", index=False)

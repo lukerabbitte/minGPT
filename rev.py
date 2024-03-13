@@ -23,8 +23,10 @@ epochs = 50
 batch_size = 64
 context_length = 30
 model_type = 'reward_conditioned'
-train_dataset_filename = 'data/goodreads_eval_modified_20pc_constant_state.tsv'
-eval_dataset_filename = 'data/goodreads_eval_modified.tsv'
+train_dataset_filename = 'data/goodreads_eval_20pc_constant_state.tsv'
+eval_dataset_filename = 'data/goodreads_eval.tsv'
+eval_data_filename = 'data/goodreads_eval_first_50.tsv'
+
 # num_steps = 500000
 # block_size = 30 * 3
 
@@ -120,7 +122,7 @@ eval_dataset = EvalDataset(eval_states, eval_actions, eval_rewards, eval_timeste
 len_eval_dataset = len(eval_states)
 
 # Forget above, do this
-eval_data = pd.read_csv('data/goodreads_eval_modified_first_50.tsv', sep='\t')
+eval_data = pd.read_csv(eval_data_filename, sep='\t')
 
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
@@ -132,11 +134,12 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       lr_decay=False, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed, model_type=model_type,
-                      ckpt_dir="checkpoints/35",
+                      ckpt_dir="checkpoints/39",
                       max_timestep=max(train_timesteps),
                       num_users=256,
                       ratings_per_user=55,
-                      num_recs=30)
+                      num_recs=30,
+                      ratings_at_extreme=False)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset, eval_data)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
@@ -144,7 +147,7 @@ plot_loss(train_losses, None, context_length, batch_size,
           mconf.n_layer, mconf.n_head, mconf.n_embd, train_dataset_filename, len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay, tconf.num_users)
 
 plot_reward(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
-              train_dataset_filename, len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
+              train_dataset_filename, len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs, tconf.ratings_at_extreme)
 
 print(f"train_losses: {train_losses}")
 print(f"rewards_per_epoch: {rewards_per_epoch}")
