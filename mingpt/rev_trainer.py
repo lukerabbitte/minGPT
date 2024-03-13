@@ -6,6 +6,7 @@ so nothing in this file really has anything to do with GPT specifically.
 import math
 import logging
 
+import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
@@ -16,6 +17,7 @@ from torch.utils.data.dataloader import DataLoader
 from mingpt.rev_utils import sample
 from mingpt.rev_utils import plot_reward_over_trajectory
 import random
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +48,13 @@ class TrainerConfig:
 
 class Trainer:
 
-    def __init__(self, model, train_dataset, test_dataset, config, eval_dataset):
+    def __init__(self, model, train_dataset, test_dataset, config, eval_dataset, eval_data):
         self.model = model
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
         self.config = config
         self.eval_dataset = eval_dataset
+        self.eval_data = eval_data
         self.train_losses = []
         self.test_losses = []
         self.action_losses = []
@@ -63,11 +66,13 @@ class Trainer:
             self.device = torch.cuda.current_device()
             self.model = torch.nn.DataParallel(self.model).to(self.device)
 
-    def save_checkpoint(self):
+    def save_checkpoint(self, epoch):
         # DataParallel wrappers keep raw model object in .module attribute
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
-        logger.info("saving %s", self.config.ckpt_path)
-        torch.save(raw_model.state_dict(), self.config.ckpt_path)
+        ckpt_name = f"epoch_{epoch}_ckpt.pth"
+        ckpt_path = os.path.join(self.config.ckpt_dir, ckpt_name)
+        logger.info("saving %s", ckpt_path)
+        torch.save(raw_model.state_dict(), ckpt_path)
 
     def train(self):
         model, config = self.model, self.config
@@ -171,10 +176,12 @@ class Trainer:
             # good_model = self.test_dataset is None or test_loss < best_loss
             # if self.config.ckpt_path is not None and good_model:
             #     best_loss = test_loss
-            self.save_checkpoint()
+            self.save_checkpoint(epoch)
+
+
 
             # Evaluate by passing in the number of new recs we want to generate
-            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, self.config.ratings_per_user, epoch, config.max_epochs)
+            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, self.config.ratings_per_user, epoch, config.max_epochs, )
             self.rewards_per_epoch.append(reward_per_epoch)
 
         return self.train_losses, self.action_losses, self.test_losses, self.rewards_per_epoch
@@ -185,8 +192,10 @@ class Trainer:
         # ideal_return = ratings_per_user * 5
         self.model.train(False)
         # user_id = random.randint(1, num_users)
-        user_id = 1  # let's let user_id stand in as a proxy for entire group 1
-        eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
+
+        # user_id = 1  # let's let user_id stand in as a proxy for entire group 1
+        # eval_states, eval_actions, eval_rewards, eval_timesteps = self.eval_dataset[user_id]
+
         rtgs = [ideal_return]
         reward_sum = 0
         rewards_over_trajectory = []
@@ -207,17 +216,24 @@ class Trainer:
 
             action = sampled_action.cpu().numpy()[-1]
             actions.append(action)
-            action_indices = np.where(eval_actions == action)[0]
-            print(f"Action {action} as according to original dataset is actually action+1: {action + 1}")
-            if len(action_indices) > 0:
-                action_index = action_indices[0]
-            else:
-                print(f"Action {action} was not found for user {eval_states[0]}")
-                raise MatchingActionNotFoundError()
-            reward = eval_rewards[action_index]
-            reward_sum += reward.item()
-            rewards_over_trajectory.append(reward.item())
-            rtgs += [rtgs[-1] - reward.item()]
+            # action_indices = np.where(eval_actions == action)[0]
+
+            # Get avergage rating across eval_data (first 50 users)
+            eval_data_filtered_by_item = self.eval_data[self.eval_data['item_id'] == action + 1]
+            print(f"eval_data_filtered_by_item df looks like:\n{eval_data_filtered_by_item.head()}\n{eval_data_filtered_by_item.tail()}")
+            average_rating = eval_data_filtered_by_item['rating'].mean()
+            print(f"average_rating for this rec across 50 users from same group (less noisy) was: {average_rating}")
+
+            # print(f"Action {action} as according to original dataset is actually action+1: {action + 1}")
+            # if len(action_indices) > 0:
+            #     action_index = action_indices[0]
+            # else:
+            #     print(f"Action {action} was not found for user {eval_states[0]}")
+            #     raise MatchingActionNotFoundError()
+            # reward = eval_rewards[action_index]
+            reward_sum += average_rating
+            rewards_over_trajectory.append(average_rating)
+            rtgs += [rtgs[-1] - average_rating]
             all_states = torch.cat([all_states, state], dim=1) # TODO try without cat
             all_actions = torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(1).unsqueeze(0)
             all_rtgs = torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(-1)
@@ -225,9 +241,10 @@ class Trainer:
             print(f"all_actions shape just before sample {all_actions.shape}")
             sampled_action = sample(self.model, all_states, all_actions, all_rtgs, all_timesteps, 1, temperature=1.0, sample=True)
 
-        print(f"Just recommended {num_recs} new items to user {user_id} and the total rating was {reward_sum}")
+        print(f"Just recommended {num_recs} new items to 50 users from group 1 and the total rating was {reward_sum}")
         self.model.train(True)
 
-        plot_reward_over_trajectory(rewards_over_trajectory, num_recs, user_id, epoch, max_epochs)
+        # Slowing things down too much
+        plot_reward_over_trajectory(rewards_over_trajectory, num_recs, None, epoch, max_epochs)
 
         return reward_sum

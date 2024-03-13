@@ -77,7 +77,8 @@ class CausalSelfAttention(nn.Module):
 
         # output projection
         y = self.resid_drop(self.proj(y))
-        return y, att  # also return attention weights for visualisation
+        # return y, att  # also return attention weights for visualisation
+        return y  # also return attention weights for visualisation
 
 class Block(nn.Module):
     """ an unassuming Transformer block """

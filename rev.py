@@ -19,7 +19,7 @@ from mingpt.rev_utils import plot_loss
 from mingpt.rev_utils import plot_reward
 
 seed = 123
-epochs = 30
+epochs = 50
 batch_size = 64
 context_length = 30
 model_type = 'reward_conditioned'
@@ -119,6 +119,9 @@ eval_states, eval_actions, eval_rewards, _, _, eval_timesteps, eval_terminal_ind
 eval_dataset = EvalDataset(eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices, context_length * 3)
 len_eval_dataset = len(eval_states)
 
+# Forget above, do this
+eval_data = pd.read_csv('data/goodreads_eval_modified_first_50.tsv', sep='\t')
+
 # print(f"max_timesteps across entire dataset is: {max(timesteps)}")
 mconf = GPTConfig(train_dataset.vocab_size, train_dataset.block_size, n_layer=6, n_head=8,
                   n_embd=128, model_type=model_type, max_timestep=max(train_timesteps))
@@ -129,12 +132,12 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       lr_decay=False, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed, model_type=model_type,
-                      ckpt_path="checkpoints/model_checkpoint.pth",
+                      ckpt_dir="checkpoints/35",
                       max_timestep=max(train_timesteps),
                       num_users=256,
                       ratings_per_user=55,
                       num_recs=30)
-trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
+trainer = Trainer(model, train_dataset, None, tconf, eval_dataset, eval_data)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
 plot_loss(train_losses, None, context_length, batch_size,

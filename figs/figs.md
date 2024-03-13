@@ -34,8 +34,11 @@
 - 30 is same as 29, just added arg max
 - 31 is same as 30
 - 32 is same as 31, just added so returns-to-go during evaluation is always 275 (we're training on 55 interactions per user)
-- 33 is same as 31
-- 34 is same as 32
+- 33 (dummy data) is same as 31 (ditch 55*5 evals and go back to 30) but now with less noisy eval -
+  verify ratings against 50 users in eval dataset rather than just one!
+- 34 is same as 33 but with actual data.
+- 35 is same as 34 but with more epochs (50 instead of 30 - hoping to see less fluctuation over time)
+  also now saving checkpoints per epoch.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.
