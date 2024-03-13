@@ -39,6 +39,7 @@
 - 34 is same as 33 but with actual data.
 - 35 is same as 34 but with more epochs (50 instead of 30 - hoping to see less fluctuation over time)
   also now saving checkpoints per epoch.
+- 36 is same as 34 but back to (1, 2, 3, 4, 5) datasets.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

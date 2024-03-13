@@ -71,6 +71,7 @@ class Trainer:
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         ckpt_name = f"epoch_{epoch}_ckpt.pth"
         ckpt_path = os.path.join(self.config.ckpt_dir, ckpt_name)
+        os.makedirs(self.config.ckpt_dir, exist_ok=True)
         logger.info("saving %s", ckpt_path)
         torch.save(raw_model.state_dict(), ckpt_path)
 
