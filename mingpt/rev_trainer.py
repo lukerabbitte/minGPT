@@ -174,14 +174,15 @@ class Trainer:
             self.save_checkpoint()
 
             # Evaluate by passing in the number of new recs we want to generate
-            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, epoch, config.max_epochs)
+            reward_per_epoch = self.get_returns(self.config.num_recs, self.config.num_users, self.config.ratings_per_user, epoch, config.max_epochs)
             self.rewards_per_epoch.append(reward_per_epoch)
 
         return self.train_losses, self.action_losses, self.test_losses, self.rewards_per_epoch
 
-    def get_returns(self, num_recs, num_users, epoch, max_epochs):
+    def get_returns(self, num_recs, num_users, ratings_per_user, epoch, max_epochs):
 
         ideal_return = num_recs * 5  # condition sequence on 'command' or desired return + time horizon
+        # ideal_return = ratings_per_user * 5
         self.model.train(False)
         # user_id = random.randint(1, num_users)
         user_id = 1  # let's let user_id stand in as a proxy for entire group 1
@@ -204,7 +205,7 @@ class Trainer:
                 sampled_action = sample(self.model, state, first_actions, first_rtgs, first_timesteps, 1, temperature=1.0, sample=True)
                 all_states = state
 
-            action = sampled_action.cpu().numpy()[0, -1]
+            action = sampled_action.cpu().numpy()[-1]
             actions.append(action)
             action_indices = np.where(eval_actions == action)[0]
             print(f"Action {action} as according to original dataset is actually action+1: {action + 1}")

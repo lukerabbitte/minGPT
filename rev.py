@@ -23,6 +23,8 @@ epochs = 30
 batch_size = 64
 context_length = 30
 model_type = 'reward_conditioned'
+train_dataset_filename = 'data/goodreads_eval_modified_20pc_constant_state.tsv'
+eval_dataset_filename = 'data/goodreads_eval_modified.tsv'
 # num_steps = 500000
 # block_size = 30 * 3
 
@@ -103,7 +105,7 @@ class EvalDataset(Dataset):
 
 # Read in train data and create dataset
 train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices = read_data(
-    'data/goodreads_eval_modified_20pc_constant_state.tsv')
+    train_dataset_filename)
 train_dataset = ReviewDataset(train_states, train_actions, train_rewards, train_returns, train_returns_to_go, train_timesteps, train_terminal_indices, context_length * 3)
 len_train_dataset = len(train_states)
 
@@ -113,7 +115,7 @@ len_train_dataset = len(train_states)
 # len_test_dataset = len(test_states)
 
 eval_states, eval_actions, eval_rewards, _, _, eval_timesteps, eval_terminal_indices = read_data(
-    'data/goodreads_eval_modified.tsv')
+    eval_dataset_filename)
 eval_dataset = EvalDataset(eval_states, eval_actions, eval_rewards, eval_timesteps, eval_terminal_indices, context_length * 3)
 len_eval_dataset = len(eval_states)
 
@@ -130,18 +132,18 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       ckpt_path="checkpoints/model_checkpoint.pth",
                       max_timestep=max(train_timesteps),
                       num_users=256,
+                      ratings_per_user=55,
                       num_recs=30)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
 
 plot_loss(train_losses, None, context_length, batch_size,
-          mconf.n_layer, mconf.n_head, mconf.n_embd, 'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay, tconf.num_users)
+          mconf.n_layer, mconf.n_head, mconf.n_embd, train_dataset_filename, len_train_dataset, None, None, tconf.learning_rate, tconf.lr_decay, tconf.num_users)
 
 plot_reward(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
-              'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
+              train_dataset_filename, len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
 
 print(f"train_losses: {train_losses}")
 print(f"rewards_per_epoch: {rewards_per_epoch}")
-print(rewards_per_epoch, context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
-              'data/goodreads_eval_modified_80pc.tsv', len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)
-# print(f"test_losses: {test_losses}")
+print(context_length, batch_size, mconf.n_layer, mconf.n_head, mconf.n_embd,
+              train_dataset_filename, len_train_dataset, tconf.learning_rate, tconf.lr_decay, tconf.num_users, tconf.num_recs)

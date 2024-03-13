@@ -77,7 +77,7 @@ class CausalSelfAttention(nn.Module):
 
         # output projection
         y = self.resid_drop(self.proj(y))
-        return y
+        return y, att  # also return attention weights for visualisation
 
 class Block(nn.Module):
     """ an unassuming Transformer block """
@@ -246,7 +246,6 @@ class GPT(nn.Module):
             token_embeddings[:, 1::3, :] = state_embeddings
             token_embeddings[:, 2::3, :] = action_embeddings
 
-            print(f"token_embeddings[0].shape is {token_embeddings[0].shape}")
 
         elif actions is None:  # only happens at very first timestep of evaluation
             return_to_go_embeddings = self.return_to_go_embedding(returns_to_go.type(torch.float32))
@@ -290,11 +289,12 @@ class GPT(nn.Module):
         # An entire batch of raw logits can be fed into cross entropy function
         if targets is not None:
             # Make it easier to understand dims for cross-entropy
-            input = logits.permute(0, 2, 1) # ([64, 273, 30])
-            action_input = action_logits.permute(0, 2, 1)
-            target = targets.view(targets.size(0), -1) # ([64, 30])
+            input = logits.permute(0, 2, 1)  # ([64, 273, 30])
+            action_input = logits.permute(0, 2, 1)  # ([64, 273, 30])
+            target = targets.view(targets.size(0), -1)  # ([64, 30])
             loss = F.cross_entropy(input, target)
             action_loss = F.cross_entropy(action_input, target)
+
 
             """
             # Rough but can I compare to complete matrix here? Just to give idea

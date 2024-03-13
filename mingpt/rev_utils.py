@@ -53,7 +53,12 @@ def sample(model, x, y, r, t, steps, temperature=1.0, sample=False, top_k=None):
         # print(f"probs looks like: {probs.shape}")
         # sample from the distribution or take the most likely
         if sample:
-            ix = torch.multinomial(probs, num_samples=1)
+            ix_multinomial = torch.multinomial(probs, num_samples=1)
+            print(f"action scaled by temperature: {ix_multinomial}")
+            ix = torch.argmax(probs, dim=-1)  # simply return top argument
+            print(f"action picked by argmax: {ix}")
+            _, ix_topk = torch.topk(probs, k=10, dim=-1)
+            print(ix_topk)
         else:
             _, ix = torch.topk(probs, k=1, dim=-1)
         # append to the sequence and continue
@@ -150,7 +155,7 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
 
     # Information box
     info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNumber of Users in Dataset: {num_users}\nNumber of recommendations given in series during evaluation {num_recs}"
-    plt.text(0.02, 0.85, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='top',
+    plt.text(0.02, 0.25, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='bottom',
              bbox=dict(facecolor='white', alpha=0.8))
 
     if figs_dir:
