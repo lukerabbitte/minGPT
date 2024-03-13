@@ -42,9 +42,12 @@
 - 36 is the same as 35 but only does 1 new recommendation per epoch
 - 37 is same as 35 but back to (1, 2, 3, 4, 5) datasets.
 - 38 tried but with 80pc rather than 20pc dataset.
-- 39 is same as 37 but uses tracking sampler thing.
-- 40 is same as 36 where we only have 1 new recommendation per epoch,
-  but it's trained on 80pc dataset.
+- 39 is same as 37 but uses tracking sampler thing. Actually, this gives us an important insight - if
+  loss doesn't decrease at all over training, the recommendations don't 'converge' at all over epochs.
+- 40 is same as 36 where we only have 1 new recommendation per epoch, but it's trained on 80pc 
+  dataset and we only do 30 epochs as there were signs of overfitting after that on experiment 36.
+  It didn't perform well because we didn't update learning rate decay for larger dataset.
+- 41 tries again but with learning rate decay.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

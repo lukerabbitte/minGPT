@@ -246,6 +246,6 @@ class Trainer:
         self.model.train(True)
 
         # Slowing things down too much
-        plot_reward_over_trajectory(rewards_over_trajectory, num_recs, None, epoch, max_epochs)
+        # plot_reward_over_trajectory(rewards_over_trajectory, num_recs, None, epoch, max_epochs)
 
         return reward_sum

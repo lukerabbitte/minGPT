@@ -158,7 +158,7 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
     plt.ylim(0, max_abs_reward * 1.1)
 
     # Information box
-    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNumber of Users in Dataset: {num_users}\nNumber of recommendations given in series during evaluation {num_recs}"
+    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNumber of Users in Dataset: {num_users}\nNumber of recommendations given in series during evaluation: {num_recs}\nRatings at extreme (either 1 or 5): {ratings_at_extreme}"
     plt.text(0.02, 0.25, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='bottom',
              bbox=dict(facecolor='white', alpha=0.8))
 
@@ -169,7 +169,7 @@ def plot_reward(rewards_per_epoch, context_length, batch_size, n_layer, n_head, 
         plt.savefig(os.path.join(figs_dir, new_filename), format='svg')
 
 def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_head, n_embd,
-              filename_train_dataset, len_train_dataset, filename_test_dataset, len_test_dataset, learning_rate, lr_decay, num_users, figs_dir='figs'):
+              filename_train_dataset, len_train_dataset, filename_test_dataset, len_test_dataset, learning_rate, lr_decay, num_users, ratings_at_extreme, figs_dir='figs'):
     plt.rcParams.update({'font.family': 'monospace'})
     plt.figure(figsize=(12, 8))
 
@@ -199,7 +199,7 @@ def plot_loss(train_losses, test_losses, context_length, batch_size, n_layer, n_
     plt.ylim(0, max_abs_reward * 1.1)
 
     # Information box
-    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nTest Dataset Name: {filename_test_dataset}\nTest Dataset Size: {len_test_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNo. Users in Dataset: {num_users}"
+    info_text = f"Context Length: {context_length}\nBatch Size: {batch_size}\nLayers: {n_layer}\nHeads: {n_head}\nEmbedding Size: {n_embd}\nTrain Dataset Name: {filename_train_dataset}\nTrain Dataset Size: {len_train_dataset}\nTest Dataset Name: {filename_test_dataset}\nTest Dataset Size: {len_test_dataset}\nLearning Rate: {learning_rate}\nLearning Rate Decay: {lr_decay}\nNo. Users in Dataset: {num_users}\nRatings at extreme (either 1 or 5): {ratings_at_extreme}"
     plt.text(0.02, 0.85, info_text, transform=plt.gca().transAxes, fontsize=12, verticalalignment='top',
              bbox=dict(facecolor='white', alpha=0.8))
 
