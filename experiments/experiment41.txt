@@ -1,0 +1,693 @@
+train_loss is: 5.6106270785745425
+action scaled by temperature: tensor([[37]], device='cuda:0')
+action picked by argmax: tensor([107], device='cuda:0')
+tensor([[107, 205, 169, 250, 251,  10, 145,  35, 213, 211]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+137         1      108       4       138
+320         2      108       5        48
+555         3      108       5        10
+1033        4      108       4       215
+1304        5      108       4       213
+       user_id  item_id  rating  timestep
+12385       46      108       5       101
+12814       47      108       4       257
+12864       48      108       5        34
+13276       49      108       4       173
+13592       50      108       5       216
+average_rating for this rec across 50 users from same group (less noisy) was: 4.4
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[5]], device='cuda:0')
+action picked by argmax: tensor([205], device='cuda:0')
+tensor([[205, 200, 231, 227, 169, 180, 156,  37,  81,   5]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.4
+train_loss is: 5.577656253832116
+action scaled by temperature: tensor([[163]], device='cuda:0')
+action picked by argmax: tensor([205], device='cuda:0')
+tensor([[205,  44,  69,  47, 211, 209, 250, 169, 158,  24]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+199         1      206       3       200
+408         2      206       4       136
+800         3      206       4       255
+935         4      206       3       117
+1159        5      206       4        68
+       user_id  item_id  rating  timestep
+12540       46      206       3       256
+12585       47      206       4        28
+12935       48      206       3       105
+13364       49      206       5       261
+13505       50      206       3       129
+average_rating for this rec across 50 users from same group (less noisy) was: 4.16
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[11]], device='cuda:0')
+action picked by argmax: tensor([250], device='cuda:0')
+tensor([[250, 211,  24, 227, 114,  45, 205,  61,   9,  76]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.16
+train_loss is: 5.510445039566249
+action scaled by temperature: tensor([[84]], device='cuda:0')
+action picked by argmax: tensor([30], device='cuda:0')
+tensor([[ 30,  47, 161, 268, 203,   4, 149,  69,  44,  76]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+31          1       31       4        32
+538         2       31       4       266
+740         3       31       4       195
+1053        4       31       5       235
+1186        5       31       5        95
+       user_id  item_id  rating  timestep
+12404       46       31       5       120
+12738       47       31       5       181
+12892       48       31       5        62
+13137       49       31       5        34
+13462       50       31       4        86
+average_rating for this rec across 50 users from same group (less noisy) was: 4.8
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[210]], device='cuda:0')
+action picked by argmax: tensor([250], device='cuda:0')
+tensor([[250,  56, 158, 213,  75,  13,  76, 211,  24, 205]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.8
+train_loss is: 5.392757600845267
+action scaled by temperature: tensor([[51]], device='cuda:0')
+action picked by argmax: tensor([246], device='cuda:0')
+tensor([[246,  30, 151, 211, 268,  47,  76, 186, 252, 107]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+185         1      247       4       186
+384         2      247       4       112
+620         3      247       5        75
+986         4      247       5       168
+1337        5      247       4       246
+       user_id  item_id  rating  timestep
+12355       46      247       4        71
+12740       47      247       4       183
+12928       48      247       5        98
+13339       49      247       3       236
+13639       50      247       4       263
+average_rating for this rec across 50 users from same group (less noisy) was: 4.12
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[176]], device='cuda:0')
+action picked by argmax: tensor([56], device='cuda:0')
+tensor([[ 56, 211, 250,  93,  27,  76, 144,  75, 107,  79]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.12
+train_loss is: 5.2559699315458674
+action scaled by temperature: tensor([[198]], device='cuda:0')
+action picked by argmax: tensor([211], device='cuda:0')
+tensor([[211, 186,  47, 268, 246,  24, 205,  30,  76, 252]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+16          1      212       4        17
+467         2      212       5       195
+562         3      212       5        17
+1019        4      212       5       201
+1164        5      212       4        73
+       user_id  item_id  rating  timestep
+12469       46      212       5       185
+12820       47      212       5       263
+13061       48      212       5       231
+13249       49      212       4       146
+13422       50      212       5        46
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[45]], device='cuda:0')
+action picked by argmax: tensor([250], device='cuda:0')
+tensor([[250,  93,  56, 211, 144,  76,  27, 201,  89, 177]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 5.163084857540044
+action scaled by temperature: tensor([[218]], device='cuda:0')
+action picked by argmax: tensor([211], device='cuda:0')
+tensor([[211,  47, 186,  24, 268, 137,  30, 129,  55, 252]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+16          1      212       4        17
+467         2      212       5       195
+562         3      212       5        17
+1019        4      212       5       201
+1164        5      212       4        73
+       user_id  item_id  rating  timestep
+12469       46      212       5       185
+12820       47      212       5       263
+13061       48      212       5       231
+13249       49      212       4       146
+13422       50      212       5        46
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[99]], device='cuda:0')
+action picked by argmax: tensor([250], device='cuda:0')
+tensor([[250,  56,  93,  27, 201, 177, 211, 158, 144,  76]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 5.078399623365707
+action scaled by temperature: tensor([[171]], device='cuda:0')
+action picked by argmax: tensor([211], device='cuda:0')
+tensor([[211,  47, 268,  24, 137, 265, 186,  55, 252, 129]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+16          1      212       4        17
+467         2      212       5       195
+562         3      212       5        17
+1019        4      212       5       201
+1164        5      212       4        73
+       user_id  item_id  rating  timestep
+12469       46      212       5       185
+12820       47      212       5       263
+13061       48      212       5       231
+13249       49      212       4       146
+13422       50      212       5        46
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[54]], device='cuda:0')
+action picked by argmax: tensor([250], device='cuda:0')
+tensor([[250, 201,  56,  93,  27, 224,  89, 177,  24,  13]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 4.97729775023787
+action scaled by temperature: tensor([[196]], device='cuda:0')
+action picked by argmax: tensor([268], device='cuda:0')
+tensor([[268, 211, 235,  56,  76, 145, 109,  38,  24,  47]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+146         1      269       5       147
+338         2      269       4        66
+695         3      269       5       150
+1049        4      269       5       231
+1295        5      269       4       204
+       user_id  item_id  rating  timestep
+12474       46      269       4       190
+12685       47      269       5       128
+13091       48      269       4       261
+13338       49      269       4       235
+13558       50      269       5       182
+average_rating for this rec across 50 users from same group (less noisy) was: 4.12
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[204]], device='cuda:0')
+action picked by argmax: tensor([89], device='cuda:0')
+tensor([[ 89, 201, 250, 268,  56,  13, 174,  85,  93, 177]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.12
+train_loss is: 4.785737856338013
+action scaled by temperature: tensor([[223]], device='cuda:0')
+action picked by argmax: tensor([268], device='cuda:0')
+tensor([[268,  38, 262, 194,  76, 211, 159,   3, 137, 257]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+146         1      269       5       147
+338         2      269       4        66
+695         3      269       5       150
+1049        4      269       5       231
+1295        5      269       4       204
+       user_id  item_id  rating  timestep
+12474       46      269       4       190
+12685       47      269       5       128
+13091       48      269       4       261
+13338       49      269       4       235
+13558       50      269       5       182
+average_rating for this rec across 50 users from same group (less noisy) was: 4.12
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[178]], device='cuda:0')
+action picked by argmax: tensor([13], device='cuda:0')
+tensor([[ 13, 142, 268, 160, 235, 135, 187,  85, 193,  92]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.12
+train_loss is: 4.359235545815943
+action scaled by temperature: tensor([[194]], device='cuda:0')
+action picked by argmax: tensor([76], device='cuda:0')
+tensor([[ 76, 257, 169, 262, 137, 194,  83,  54, 219, 177]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+243         1       77       5       244
+432         2       77       5       160
+743         3       77       5       198
+835         4       77       4        17
+1233        5       77       4       142
+       user_id  item_id  rating  timestep
+12393       46       77       3       109
+12719       47       77       4       162
+13098       48       77       5       268
+13143       49       77       4        40
+13500       50       77       3       124
+average_rating for this rec across 50 users from same group (less noisy) was: 3.96
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[168]], device='cuda:0')
+action picked by argmax: tensor([96], device='cuda:0')
+tensor([[ 96,  54,  76, 262, 227,  83, 246, 109,  35, 211]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 3.96
+train_loss is: 3.72297136424339
+action scaled by temperature: tensor([[105]], device='cuda:0')
+action picked by argmax: tensor([76], device='cuda:0')
+tensor([[ 76, 235, 153,   9, 223, 194,  64, 238, 228,  47]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+243         1       77       5       244
+432         2       77       5       160
+743         3       77       5       198
+835         4       77       4        17
+1233        5       77       4       142
+       user_id  item_id  rating  timestep
+12393       46       77       3       109
+12719       47       77       4       162
+13098       48       77       5       268
+13143       49       77       4        40
+13500       50       77       3       124
+average_rating for this rec across 50 users from same group (less noisy) was: 3.96
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[224]], device='cuda:0')
+action picked by argmax: tensor([227], device='cuda:0')
+tensor([[227, 148,  96, 105, 196, 262, 109, 103, 142, 264]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 3.96
+train_loss is: 3.076917989068924
+action scaled by temperature: tensor([[187]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 153, 205,  36,  24,   7, 183, 139, 157,  76]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[53]], device='cuda:0')
+action picked by argmax: tensor([35], device='cuda:0')
+tensor([[ 35,   1,  43, 270,  28, 202,  90, 182,  72, 165]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 2.5184531843281226
+action scaled by temperature: tensor([[106]], device='cuda:0')
+action picked by argmax: tensor([228], device='cuda:0')
+tensor([[228, 109,  76,  58, 169, 177,  71, 187,  64,   3]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+10          1      229       5        11
+339         2      229       4        67
+731         3      229       4       186
+831         4      229       4        13
+1129        5      229       4        38
+       user_id  item_id  rating  timestep
+12527       46      229       5       243
+12747       47      229       5       190
+12891       48      229       4        61
+13281       49      229       5       178
+13513       50      229       4       137
+average_rating for this rec across 50 users from same group (less noisy) was: 4.32
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[165]], device='cuda:0')
+action picked by argmax: tensor([165], device='cuda:0')
+tensor([[165, 259, 242, 197, 169, 234, 135,  35,  84, 124]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.32
+train_loss is: 2.020694621077411
+action scaled by temperature: tensor([[82]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 193, 187,  64, 197,  81, 159,  36,  30,  51]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[178]], device='cuda:0')
+action picked by argmax: tensor([105], device='cuda:0')
+tensor([[105,  18, 234, 148,  62,  74, 183,   3,  85, 238]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 1.5745436606341845
+action scaled by temperature: tensor([[230]], device='cuda:0')
+action picked by argmax: tensor([3], device='cuda:0')
+tensor([[  3, 238, 228,  26, 109, 203, 156, 114,  37, 148]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+35          1        4       4        36
+501         2        4       5       229
+680         3        4       5       135
+938         4        4       4       120
+1201        5        4       5       110
+       user_id  item_id  rating  timestep
+12530       46        4       5       246
+12610       47        4       4        53
+13062       48        4       4       232
+13214       49        4       4       111
+13385       50        4       4         9
+average_rating for this rec across 50 users from same group (less noisy) was: 4.6
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[202]], device='cuda:0')
+action picked by argmax: tensor([85], device='cuda:0')
+tensor([[ 85, 225, 268, 270, 202, 272,  35, 235,  47, 222]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.6
+train_loss is: 1.231812785749566
+action scaled by temperature: tensor([[93]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 228, 114, 148,  19,  76,   3,  36, 169, 237]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[107]], device='cuda:0')
+action picked by argmax: tensor([105], device='cuda:0')
+tensor([[105,  18,  85, 222,  93, 183, 196, 197, 103, 143]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 1.0208820447529832
+action scaled by temperature: tensor([[120]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109,  71, 228, 114,   3,  76, 148, 246, 237,  64]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[41]], device='cuda:0')
+action picked by argmax: tensor([18], device='cuda:0')
+tensor([[ 18, 183, 105,  85, 197,  35, 103,  93, 262, 196]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 0.9381882885819701
+action scaled by temperature: tensor([[5]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109,  76, 228, 227,   3, 257, 148,  71, 237, 156]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[85]], device='cuda:0')
+action picked by argmax: tensor([183], device='cuda:0')
+tensor([[183,  85,  18,  35,  28, 105, 103, 197,  90,  93]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 0.9045455352356445
+action scaled by temperature: tensor([[132]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 228,  71, 246,  76,   3, 120, 237, 114, 148]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[132]], device='cuda:0')
+action picked by argmax: tensor([183], device='cuda:0')
+tensor([[183,  18, 105,  85, 103,  35,  28, 245,  72, 197]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 0.8986667038098862
+action scaled by temperature: tensor([[161]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 228,  76, 120, 257,  64, 238, 117, 237, 246]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[103]], device='cuda:0')
+action picked by argmax: tensor([18], device='cuda:0')
+tensor([[ 18, 103, 183,  85, 105,  35, 121, 137,  28,  36]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 0.9863847559445524
+action scaled by temperature: tensor([[219]], device='cuda:0')
+action picked by argmax: tensor([237], device='cuda:0')
+tensor([[237, 169, 228,  71,  76, 109,  88, 114, 156, 256]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+228         1      238       4       229
+475         2      238       3       203
+719         3      238       3       174
+860         4      238       5        42
+1166        5      238       5        75
+       user_id  item_id  rating  timestep
+12462       46      238       3       178
+12618       47      238       4        61
+13000       48      238       5       170
+13192       49      238       3        89
+13431       50      238       5        55
+average_rating for this rec across 50 users from same group (less noisy) was: 4.06
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[197]], device='cuda:0')
+action picked by argmax: tensor([105], device='cuda:0')
+tensor([[105, 265, 237, 149, 165, 259, 179, 197, 250, 234]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.06
+train_loss is: 1.0977826390636567
+action scaled by temperature: tensor([[19]], device='cuda:0')
+action picked by argmax: tensor([109], device='cuda:0')
+tensor([[109, 160, 257, 246,  26, 143, 256, 169,  88, 153]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+132         1      110       4       133
+472         2      110       5       200
+687         3      110       5       142
+910         4      110       5        92
+1217        5      110       4       126
+       user_id  item_id  rating  timestep
+12408       46      110       5       124
+12729       47      110       5       172
+12956       48      110       5       126
+13369       49      110       5       266
+13458       50      110       5        82
+average_rating for this rec across 50 users from same group (less noisy) was: 4.66
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[3]], device='cuda:0')
+action picked by argmax: tensor([105], device='cuda:0')
+tensor([[105, 103, 225, 143, 234,  85, 134, 272, 139, 142]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.66
+train_loss is: 1.1674424638486889
+action scaled by temperature: tensor([[156]], device='cuda:0')
+action picked by argmax: tensor([3], device='cuda:0')
+tensor([[  3, 211, 200, 117, 135, 187,  76,  48, 100,  37]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+35          1        4       4        36
+501         2        4       5       229
+680         3        4       5       135
+938         4        4       4       120
+1201        5        4       5       110
+       user_id  item_id  rating  timestep
+12530       46        4       5       246
+12610       47        4       4        53
+13062       48        4       4       232
+13214       49        4       4       111
+13385       50        4       4         9
+average_rating for this rec across 50 users from same group (less noisy) was: 4.6
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[148]], device='cuda:0')
+action picked by argmax: tensor([75], device='cuda:0')
+tensor([[ 75, 235, 250, 178,  85, 215, 249, 105, 112, 168]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.6
+train_loss is: 1.1434406058429039
+action scaled by temperature: tensor([[113]], device='cuda:0')
+action picked by argmax: tensor([185], device='cuda:0')
+tensor([[185, 200, 227, 237,   3, 128, 135, 262,  75,  37]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+149         1      186       3       150
+283         2      186       3        11
+635         3      186       2        90
+1052        4      186       4       234
+1137        5      186       3        46
+       user_id  item_id  rating  timestep
+12412       46      186       4       128
+12689       47      186       2       132
+12858       48      186       3        28
+13206       49      186       4       103
+13612       50      186       3       236
+average_rating for this rec across 50 users from same group (less noisy) was: 3.22
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[135]], device='cuda:0')
+action picked by argmax: tensor([179], device='cuda:0')
+tensor([[179, 135,  64, 223, 198,   3,  99, 160, 105,  46]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 3.22
+train_loss is: 1.0413074262065976
+action scaled by temperature: tensor([[206]], device='cuda:0')
+action picked by argmax: tensor([179], device='cuda:0')
+tensor([[179, 109, 227,  19,  58,  88,  98, 262,   3, 148]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+13          1      180       4        14
+477         2      180       5       205
+563         3      180       3        18
+965         4      180       5       147
+1218        5      180       5       127
+       user_id  item_id  rating  timestep
+12516       46      180       4       232
+12671       47      180       5       114
+12860       48      180       5        30
+13363       49      180       5       260
+13433       50      180       5        57
+average_rating for this rec across 50 users from same group (less noisy) was: 4.58
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[249]], device='cuda:0')
+action picked by argmax: tensor([242], device='cuda:0')
+tensor([[242, 249, 165,  28, 222, 160,  94, 265,  72, 179]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.58
+train_loss is: 0.9061143066240772
+action scaled by temperature: tensor([[246]], device='cuda:0')
+action picked by argmax: tensor([169], device='cuda:0')
+tensor([[169, 237, 227, 117, 180, 200, 173, 205, 148, 179]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+126         1      170       5       127
+429         2      170       5       157
+722         3      170       4       177
+983         4      170       5       165
+1126        5      170       4        35
+       user_id  item_id  rating  timestep
+12490       46      170       4       206
+12602       47      170       4        45
+13027       48      170       5       197
+13304       49      170       5       201
+13599       50      170       5       223
+average_rating for this rec across 50 users from same group (less noisy) was: 4.54
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[272]], device='cuda:0')
+action picked by argmax: tensor([249], device='cuda:0')
+tensor([[249, 165,  94, 160,  50, 234, 105, 151, 125,  89]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.54
+train_loss is: 0.758754031571079
+action scaled by temperature: tensor([[179]], device='cuda:0')
+action picked by argmax: tensor([37], device='cuda:0')
+tensor([[ 37, 179,  75, 257,  93,   3, 148, 227,  10, 109]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+118         1       38       3       119
+455         2       38       2       183
+757         3       38       5       212
+856         4       38       4        38
+1253        5       38       5       162
+       user_id  item_id  rating  timestep
+12320       46       38       2        36
+12622       47       38       3        65
+13068       48       38       3       238
+13336       49       38       3       233
+13466       50       38       5        90
+average_rating for this rec across 50 users from same group (less noisy) was: 3.36
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[110]], device='cuda:0')
+action picked by argmax: tensor([165], device='cuda:0')
+tensor([[165, 234, 225, 169, 215,  92, 198, 134,   3, 160]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 3.36
+train_loss is: 0.6367890097234892
+action scaled by temperature: tensor([[44]], device='cuda:0')
+action picked by argmax: tensor([37], device='cuda:0')
+tensor([[ 37,   3, 185, 256, 246, 227, 179,   0, 117,  75]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+118         1       38       3       119
+455         2       38       2       183
+757         3       38       5       212
+856         4       38       4        38
+1253        5       38       5       162
+       user_id  item_id  rating  timestep
+12320       46       38       2        36
+12622       47       38       3        65
+13068       48       38       3       238
+13336       49       38       3       233
+13466       50       38       5        90
+average_rating for this rec across 50 users from same group (less noisy) was: 3.36
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[151]], device='cuda:0')
+action picked by argmax: tensor([165], device='cuda:0')
+tensor([[165, 193, 134, 113, 198, 125, 159, 197, 169,  92]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 3.36
+train_loss is: 0.549570314007807
+action scaled by temperature: tensor([[56]], device='cuda:0')
+action picked by argmax: tensor([3], device='cuda:0')
+tensor([[  3,  37, 117, 227, 256,  76, 179, 109, 246, 237]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+35          1        4       4        36
+501         2        4       5       229
+680         3        4       5       135
+938         4        4       4       120
+1201        5        4       5       110
+       user_id  item_id  rating  timestep
+12530       46        4       5       246
+12610       47        4       4        53
+13062       48        4       4       232
+13214       49        4       4       111
+13385       50        4       4         9
+average_rating for this rec across 50 users from same group (less noisy) was: 4.6
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[195]], device='cuda:0')
+action picked by argmax: tensor([268], device='cuda:0')
+tensor([[268, 162, 250, 178, 215, 234,  85, 207, 222,  10]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.6
+train_loss is: 0.5180078562536196
+action scaled by temperature: tensor([[163]], device='cuda:0')
+action picked by argmax: tensor([3], device='cuda:0')
+tensor([[  3,  37, 117, 227, 179, 109,  75,  76, 237, 148]], device='cuda:0')
+eval_data_filtered_by_item df looks like:
+      user_id  item_id  rating  timestep
+35          1        4       4        36
+501         2        4       5       229
+680         3        4       5       135
+938         4        4       4       120
+1201        5        4       5       110
+       user_id  item_id  rating  timestep
+12530       46        4       5       246
+12610       47        4       4        53
+13062       48        4       4       232
+13214       49        4       4       111
+13385       50        4       4         9
+average_rating for this rec across 50 users from same group (less noisy) was: 4.6
+all_actions shape just before sample torch.Size([1, 1, 1])
+action scaled by temperature: tensor([[268]], device='cuda:0')
+action picked by argmax: tensor([268], device='cuda:0')
+tensor([[268, 250, 178, 222, 215, 234,  10,  85,  76, 207]], device='cuda:0')
+Just recommended 1 new items to 50 users from group 1 and the total rating was 4.6
+train_losses: [5.6106270785745425, 5.577656253832116, 5.510445039566249, 5.392757600845267, 5.2559699315458674, 5.163084857540044, 5.078399623365707, 4.97729775023787, 4.785737856338013, 4.359235545815943, 3.72297136424339, 3.076917989068924, 2.5184531843281226, 2.020694621077411, 1.5745436606341845, 1.231812785749566, 1.0208820447529832, 0.9381882885819701, 0.9045455352356445, 0.8986667038098862, 0.9863847559445524, 1.0977826390636567, 1.1674424638486889, 1.1434406058429039, 1.0413074262065976, 0.9061143066240772, 0.758754031571079, 0.6367890097234892, 0.549570314007807, 0.5180078562536196]
+rewards_per_epoch: [4.4, 4.16, 4.8, 4.12, 4.66, 4.66, 4.66, 4.12, 4.12, 3.96, 3.96, 4.66, 4.32, 4.66, 4.6, 4.66, 4.66, 4.66, 4.66, 4.66, 4.06, 4.66, 4.6, 3.22, 4.58, 4.54, 3.36, 3.36, 4.6, 4.6]
+30 64 6 8 128 data/goodreads_eval_20pc_constant_state.tsv 14080 0.0048 True 256 1

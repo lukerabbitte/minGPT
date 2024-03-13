@@ -47,7 +47,12 @@
 - 40 is same as 36 where we only have 1 new recommendation per epoch, but it's trained on 80pc 
   dataset and we only do 30 epochs as there were signs of overfitting after that on experiment 36.
   It didn't perform well because we didn't update learning rate decay for larger dataset.
-- 41 tries again but with learning rate decay.
+- 
+- 41 some exps figs and checkpoints lost after Git reset.
+  Trying the 1 recommendation again with 20pc dataset and learning rate decay. Suspect will b good.
+- 42 same as 41.
+- 43 back to basics 30 num_recs, 30 epochs, etc.
+- 44 same as 43.
 
 - `loss_and_action_loss_plot_with_info_1.svg` shows that for fixed data, the loss explodes when we only keep
   action embeddings and not state embeddings.

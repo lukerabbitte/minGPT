@@ -23,7 +23,7 @@ epochs = 30
 batch_size = 64
 context_length = 30
 model_type = 'reward_conditioned'
-train_dataset_filename = 'data/goodreads_eval_80pc_constant_state.tsv'
+train_dataset_filename = 'data/goodreads_eval_20pc_constant_state.tsv'
 eval_dataset_filename = 'data/goodreads_eval.tsv'
 eval_data_filename = 'data/goodreads_eval_first_50.tsv'
 
@@ -134,11 +134,11 @@ tconf = TrainerConfig(max_epochs=epochs, batch_size=batch_size, learning_rate=0.
                       lr_decay=True, warmup_tokens=512 * 20,
                       final_tokens=2 * len(train_dataset) * context_length * 3,
                       num_workers=4, seed=seed, model_type=model_type,
-                      ckpt_dir="checkpoints/41",
+                      ckpt_dir="checkpoints/44",
                       max_timestep=max(train_timesteps),
                       num_users=256,
                       ratings_per_user=55,
-                      num_recs=1,
+                      num_recs=30,
                       ratings_at_extreme=False)
 trainer = Trainer(model, train_dataset, None, tconf, eval_dataset, eval_data)
 train_losses, action_losses, test_losses, rewards_per_epoch = trainer.train()
